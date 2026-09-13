@@ -25,6 +25,9 @@
 | 8 | 토탈임팩트 | BX Designer | 서울 | 신입/경력 | Facebook | https://www.facebook.com/totalimpactseoul/posts/705282451619452/ |
 | 9 | 레이어(lllayer) | BX디자이너 | 서울(추정) | 명시 없음(확인 필요) | Facebook | https://www.facebook.com/lllayer.experience/posts/5148594525255814/ |
 | 10 | 아이덴티오 | BX 디자이너 | 서울(추정, 윤빌리티 9월 4주차 큐레이션) | 명시 없음(원문 확인 필요) | Facebook(윤빌리티 경유) | https://www.facebook.com/yoonbility/posts/1428152945655181/ |
+| 11(추가) | **BGROW(비그로우)** | Visual Designer | 서울(추정) | 자격요건 상세 확인 필요 | Instagram 공식계정 | https://www.instagram.com/bgrow.korea/ |
+
+**업데이트**: 첨부 자료의 "[BGROW] 패션 그로스 에이전시 비주얼 디자이너" 공고가 Instagram 공식 계정(@bgrow.korea)에서도 현재 채용 중으로 확인되어 추가함 (`company-crosscheck-verification.md` 참고).
 
 **제외한 것**: 디블러(2026 상반기, 이미 마감), THOMAS STUDIO(8/20 마감 경과), 플레이크(7/20 마감 경과), 1-1컴퍼니(경력 3년 이상 요건 불일치), 베이그(시니어/경력3년 이상)
 
