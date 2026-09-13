@@ -68,10 +68,17 @@ SNS 채용공고 리서치는 신규 스킬을 새로 만들기보다, 기존 `c
 - **신규 배제 유형**: `WRONG_AUDIENCE` (재학생이 아닌 실습 파트너/호스트 기업을 모집하는 공고 등 대상 불일치)
 - **교차 플랫폼 중복 규칙**: 동일 큐레이션 계정이 동일 주차 요약을 여러 플랫폼에 동시 게시하는 경우, 대표 소스 1건만 채택
 
-### Phase 4 — Matching 연계 및 운영화
+### Phase 4 — Matching 연계 및 운영화 ✅ 설계 완료 (구현은 별도 엔지니어링 작업)
 - 정규화된 Job Record를 기존 Matching 입력 포맷에 연결
 - 주기적 재수집(신선도 재검증) 스케줄 설계
 - 운영 대시보드: 플랫폼별 발견 건수, 신뢰도 분포, 마감 임박 공고 알림
+- **결과**: [Phase 4 설계 문서](./phase4-matching-integration-design.md) 참고. 이 시스템은 이미 `job_postings` 테이블과 Matching 파이프라인(`js/data.js`)을 갖추고 있어, 새 저장소를 만들지 않고 기존 파이프라인에 SNS Job Record를 태우는 방식으로 설계함.
+- **핵심 설계 결정**:
+  1. SNS 출처 레코드는 항상 `status = DRAFT`로 최초 저장, 담당자가 원문 확인 후 수동으로 `ACTIVE` 전환 (자동 승격 금지)
+  2. `EXPIRED` 판정 후보는 애초에 저장하지 않음
+  3. 기존 `analyzeJobPosting(raw)` AI 분석 Edge Function을 SNS 스니펫에도 재사용 (신규 파서 불필요)
+  4. `source` 필드를 `SNS:{플랫폼}:{계정명}` 형식으로 통일, Confidence는 전용 컬럼이 없어 `description`에 태그로 임시 기록
+- **범위 외로 남긴 것**: 실제 수집 자동화 스크립트/크론, DB 스키마 마이그레이션(Confidence 전용 컬럼 등), 담당자 검토 큐 UI — 별도 엔지니어링 작업으로 분리
 
 ## 5. 파이프라인 상세 (career-job-research 확장)
 
