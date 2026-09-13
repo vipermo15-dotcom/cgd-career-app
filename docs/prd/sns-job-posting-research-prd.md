@@ -51,9 +51,12 @@ SNS 채용공고 리서치는 신규 스킬을 새로 만들기보다, 기존 `c
   3. Threads/Instagram의 채용 큐레이션 계정은 게시물 1건에 여러 기업 공고가 요약되어 있음 → 게시물 1건을 Job Record 여러 건으로 분리하는 규칙 필요
   4. 소스가 기업 공식 계정 직접 게시인지, 큐레이션 계정의 재게시인지에 따라 Research Confidence를 차등 적용해야 함
 
-### Phase 2 — 파이프라인 정식 적용 (Instagram)
+### Phase 2 — 파이프라인 정식 적용 (Instagram) ✅ 완료
 - `career-job-research` 파이프라인 전 단계 적용: 중복제거 → 신선도 검증 → 출처 검증(작성 계정이 실제 기업/채용 담당 계정인지) → 요건 추출(MUST/PREFERRED/AMBIGUOUS) → 정규화 → Research Confidence 산출
 - SNS 특유 리스크 반영: 게시일 ≠ 마감일인 경우가 많으므로 "마감일 명시 없음"은 상태를 UNKNOWN으로 두고 임의로 ACTIVE 처리하지 않음
+- **결과**: [Phase 2 실행 리포트](./phase2-pipeline-execution-report.md) 참고. 3개 직무 키워드로 원시 후보 30건 수집 → 큐레이션 분리로 21건 추가 → 배제 5건, 검토대기(AMBIGUOUS) 3건, 최종 정규화 약 34건.
+- **신규 배제 유형 발견**: `CANDIDATE_SELF_PROMOTION`(구직자 본인의 자기 홍보 게시물), `EDUCATION_PROGRAM_AD`("채용"이라는 단어를 포함하지만 실제로는 교육과정/부트캠프 모집 광고)
+- **명시적 마감일 우선 처리 규칙 확정**: 게시물에 마감일이 명시된 경우 실행 시점과 비교해 지났으면 즉시 `EXPIRED`, 마감일 미명시일 때만 `UNKNOWN` 유지
 
 ### Phase 3 — 플랫폼 확장 (Threads → Meta/Facebook → X)
 - Phase 1~2에서 검증된 파이프라인을 플랫폼별로 순차 적용
@@ -83,6 +86,8 @@ SNS 채용공고 리서치는 신규 스킬을 새로 만들기보다, 기존 `c
 - 마감일이 게시물에 명시되지 않은 경우 `Freshness = UNKNOWN`으로 표기하고, "게시일로부터 N일 경과" 정보를 함께 기록
 - 동일 공고가 여러 플랫폼에 게시된 경우 최초 게시 소스를 대표 Source로, 나머지는 참조 링크로 병합
 - 출처 불명확·요건 불명확 공고는 임의로 채우지 않고 `AMBIGUOUS` 또는 `Exclusion Reason`으로 명시 (career-job-research 금지 규칙 준수)
+- **배제 유형(Exclusion Reason) 표준 목록** (Phase 1~2 확정): `NOT_A_JOB_POSTING`(채용 트렌드에 대한 개인 의견 등), `CANDIDATE_SELF_PROMOTION`(구직자 본인의 자기 홍보), `EDUCATION_PROGRAM_AD`("채용" 단어 포함이나 실제로는 교육과정/부트캠프 모집), `EXPIRED`(명시된 마감일이 실행 시점 이전)
+- **명시적 마감일 처리**: 게시물에 마감일이 명시되어 있고 실행 시점보다 과거이면 즉시 `EXPIRED`로 배제. 마감일이 명시되지 않은 경우에만 `Freshness = UNKNOWN` 유지
 - **소스 신뢰도 등급**: 기업 공식 계정 직접 게시 > 채용 큐레이션 계정 재게시 > 개인 공유/코멘트 순으로 Research Confidence를 차등 적용. 큐레이션 재게시는 기업 공식 채용 페이지로 원문 재확인 전까지 Confidence를 낮게 유지
 - **1건 게시물 → N건 Job Record 분리**: 채용 큐레이션 계정이 여러 기업의 공고를 한 게시물에 요약한 경우, 게시물 단위가 아니라 공고 단위로 Job Record를 분리해서 생성
 - **1인칭 채용 공지 문구 1차 필터**: "모집합니다/채용합니다/지원 바랍니다" 등 채용 주체가 직접 공지하는 문구가 없는 게시물(채용 트렌드에 대한 개인 의견 등)은 `Exclusion Reason = NOT_A_JOB_POSTING`으로 1차 배제
