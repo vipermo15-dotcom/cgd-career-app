@@ -6,10 +6,10 @@ export function renderLogin(el) {
       <h1>재학생 취업시스템</h1>
       <p class="muted">이메일로 로그인 링크를 받습니다. 별도 비밀번호 없음.</p>
       <form id="f">
-        <input id="email" type="email" required placeholder="이메일 주소" autocomplete="email" />
+        <input id="email" type="email" required placeholder="이메일 주소" aria-label="이메일 주소" autocomplete="email" />
         <button type="submit">로그인 링크 받기</button>
       </form>
-      <p id="msg" class="msg" hidden></p>
+      <p id="msg" class="msg" role="status" hidden></p>
       <p class="muted small">
         개인정보 최소 수집 — 학생 번호와 표시 이름만 저장하며, 연락처·주민번호·주소는 저장하지 않습니다.
       </p>
