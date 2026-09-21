@@ -3,6 +3,7 @@ import { renderLogin } from "./views/login.js";
 import { renderInstructor } from "./views/instructor.js";
 import { renderStudent } from "./views/student.js";
 import { renderAdmin } from "./views/admin.js";
+import { renderViewer } from "./views/viewer.js";
 
 const root = () => document.getElementById("app");
 
@@ -12,11 +13,13 @@ const ROUTES = {
   "#/admin": { role: "admin", render: renderAdmin },
   "#/instructor": { role: "instructor", render: renderInstructor },
   "#/student": { role: "student", render: renderStudent },
+  "#/viewer": { role: "viewer", render: renderViewer },
 };
 
 function homeFor(profile) {
   if (!profile) return "#/login";
   if (profile.role === "admin") return "#/admin";
+  if (profile.role === "viewer") return "#/viewer";
   return profile.role === "instructor" ? "#/instructor" : "#/student";
 }
 // admin 은 instructor 화면도 접근 가능

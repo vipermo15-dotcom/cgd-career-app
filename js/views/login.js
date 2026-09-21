@@ -11,7 +11,7 @@ export function renderLogin(el) {
       </form>
       <p id="msg" class="msg" hidden></p>
       <p class="muted small">
-        개인정보 최소 수집 — 시스템에는 학생 번호(S01~)만 저장됩니다.
+        개인정보 최소 수집 — 학생 번호와 표시 이름만 저장하며, 연락처·주민번호·주소는 저장하지 않습니다.
       </p>
     </div>`;
 

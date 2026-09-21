@@ -64,7 +64,7 @@ async function paintUsers(pane) {
   let rows;
   try { rows = await adminUsers(); }
   catch (e) { pane.innerHTML = `<div class="card err">${esc(e.message)}</div>`; return; }
-  const roleOpt = (r) => ["", "student", "instructor", "admin"]
+  const roleOpt = (r) => ["", "student", "instructor", "viewer", "admin"]
     .map((v) => `<option value="${v}" ${v === (r || "") ? "selected" : ""}>${v || "(미지정)"}</option>`).join("");
   pane.innerHTML = `
     <div class="card"><div class="scroll-x"><table>

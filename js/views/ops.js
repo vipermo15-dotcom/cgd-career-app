@@ -28,7 +28,7 @@ function download(name, text, type) {
 /* =====================================================================
    1) 주차별 진로지도 현황
    ===================================================================== */
-export async function paintWeekly(pane, cohort) {
+export async function paintWeekly(pane, cohort, { readOnly = false } = {}) {
   let week = mondayOf();
   const load = async () => {
     pane.innerHTML = `<div class="card"><p class="muted">불러오는 중…</p></div>`;
@@ -49,7 +49,7 @@ export async function paintWeekly(pane, cohort) {
         <td class="small">${li ? esc(li.company) + " · " + esc(INTERVIEW_RESULT[li.result] || li.result) : "–"}</td>
         <td class="small">${emTxt}</td>
         <td class="small">${g?.guided ? "✅ " + esc(g.topic || "지도 완료") : "⬜ 미기록"}${g?.next_action ? `<br><span class="muted">→ ${esc(g.next_action)}${g.next_due ? " (" + esc(g.next_due) + ")" : ""}</span>` : ""}</td>
-        <td><button class="ghost w-edit" data-code="${esc(r.code)}">기록</button></td></tr>`;
+        <td>${readOnly ? "" : `<button class="ghost w-edit" data-code="${esc(r.code)}">기록</button>`}</td></tr>`;
     }).join("");
     pane.innerHTML = `
       <div class="card">
