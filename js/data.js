@@ -28,7 +28,7 @@ export async function getDashboard(cohortId) {
 export async function listStudents(cohortId) {
   const { data, error } = await supabase
     .from("students")
-    .select("id, code, track, stage, status, note, updated_at, artifacts(type, status)")
+    .select("id, code, display_name, track, stage, status, note, updated_at, artifacts(type, status)")
     .eq("cohort_id", cohortId)
     .order("code");
   if (error) throw error;
@@ -38,7 +38,7 @@ export async function listStudents(cohortId) {
 export async function getStudentDetail(studentId) {
   const [s, fb, log] = await Promise.all([
     supabase.from("students")
-      .select("id, code, track, stage, status, note, completion_status, outcome_status, outcome_note, report_included, artifacts(id, type, status, external_url, storage_path)")
+      .select("id, code, display_name, track, stage, status, note, completion_status, outcome_status, outcome_note, report_included, artifacts(id, type, status, external_url, storage_path)")
       .eq("id", studentId).single(),
     supabase.from("feedback")
       .select("id, author, stage, body, created_at")
@@ -99,7 +99,7 @@ export async function getCohortExport(cohortId) {
 export async function getMyDossier(studentId) {
   const [s, log] = await Promise.all([
     supabase.from("students")
-      .select("id, code, track, stage, status, artifacts(id, type, status, external_url, storage_path)")
+      .select("id, code, display_name, track, stage, status, artifacts(id, type, status, external_url, storage_path)")
       .eq("id", studentId).single(),
     supabase.from("activity_log")
       .select("id, actor, action, detail, created_at")
@@ -579,3 +579,11 @@ export function exportReportCsv(students) {
   const cell = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
   return "\uFEFF" + [head, ...rows].map((r) => r.map(cell).join(",")).join("\r\n");
 }
+
+/** 번호 → 표시 이름 (강사·관리자 화면 전용. 보고서·내보내기에는 사용하지 않음) */
+export async function getNameMap(cohortId) {
+  const { data, error } = await supabase.from("students").select("code, display_name").eq("cohort_id", cohortId);
+  if (error) throw error;
+  return Object.fromEntries((data || []).map((r) => [r.code, r.display_name || ""]));
+}
+export const whoLabel = (map, code) => (map && map[code] ? `${map[code]} (${code})` : code);

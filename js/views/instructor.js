@@ -438,7 +438,7 @@ async function paintStudents(pane, cohort) {
     const hot = r.status === "delayed" || r.status === "data_mismatch";
     return `
     <tr data-id="${r.id}" class="${hot ? "warn" : ""}">
-      <td><b>${esc(r.code)}</b></td>
+      <td><b>${esc(r.display_name || r.code)}</b>${r.display_name ? ` <span class="muted small">${esc(r.code)}</span>` : ""}</td>
       <td>${esc(r.track || "")}</td>
       <td>${esc(r.stage)}</td>
       <td>${esc(STATUS[r.status] || r.status)}</td>
@@ -450,14 +450,14 @@ async function paintStudents(pane, cohort) {
   const todo = sorted.filter((r) => r.status === "delayed" || r.status === "data_mismatch" || r.status === "check");
   const todoList = todo.map((r) => {
     const na = nextAction(r);
-    return `<li><b>${esc(r.code)}</b> (${esc(STATUS[r.status] || r.status)}) → ${esc(na.label)}
+    return `<li><b>${esc(r.display_name || r.code)}</b> (${esc(STATUS[r.status] || r.status)}) → ${esc(na.label)}
       ${na.trig ? `<span class="muted small">${esc(na.trig)}</span>` : ""}</li>`;
   }).join("") || "<li class='muted'>없음</li>";
 
   pane.innerHTML = `
     <div class="card"><h2>확인 필요 (${todo.length}명 · 번호순)</h2><ul class="gates">${todoList}</ul></div>
     <div class="card"><div class="scroll-x"><table class="rowlink">
-      <tr><th>번호</th><th>트랙</th><th>단계</th><th>상태</th>
+      <tr><th>이름</th><th>트랙</th><th>단계</th><th>상태</th>
           <th class="small">이력·자소·PDF·랜딩·피그마</th><th>다음 액션</th></tr>
       ${tr}
     </table></div></div>
@@ -510,9 +510,10 @@ async function openDetail(host, id, refresh) {
 
   host.innerHTML = `
     <div class="card detail">
-      <div class="dhead"><h2>${esc(s.code)} · ${esc(s.track || "")}</h2>
+      <div class="dhead"><h2>${esc(s.display_name || s.code)} <span class="muted small">${esc(s.code)} · ${esc(s.track || "")}</span></h2>
         <button id="dclose" class="ghost">닫기</button></div>
       <div class="row">
+        <label>이름 <input id="d-name" value="${esc(s.display_name || "")}" placeholder="표시 이름" style="width:130px"></label>
         <label>단계 <select id="d-stage">${stageOpts}</select></label>
         <label>상태 <select id="d-status">${statusOpts}</select></label>
         <button id="d-save">저장</button>
@@ -648,7 +649,7 @@ async function openDetail(host, id, refresh) {
     const status = host.querySelector("#d-status").value;
     btn.disabled = true;
     try {
-      await updateStudent(id, { stage, status });   // activity_log 는 DB 트리거가 기록
+      await updateStudent(id, { stage, status, display_name: host.querySelector("#d-name").value.trim() || null });   // activity_log 는 DB 트리거가 기록
       msg.className = "msg ok"; msg.textContent = "저장됨";
       refresh && refresh();
     } catch (err) { msg.className = "msg err"; msg.textContent = err.message; }

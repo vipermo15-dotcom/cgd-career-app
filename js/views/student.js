@@ -81,7 +81,7 @@ async function paint(pane, studentId) {
 
   pane.innerHTML = `
     <div class="card">
-      <h2>${esc(s.code)} · ${esc(s.track || "")}</h2>
+      <h2>${esc(s.display_name || s.code)} <span class="muted small">${esc(s.code)} · ${esc(s.track || "")}</span></h2>
       <ol class="stepper">${stepper}</ol>
       <p>상태: <span class="badge">${esc(STATUS[s.status] || s.status)}</span>
         <span class="muted small">단계·상태는 담당 강사가 관리합니다.</span></p>
