@@ -10,6 +10,7 @@ import {
   STAGES, STATUS, ARTIFACT_TYPES,
   APPLICATION_STATUS, JOB_CATEGORIES, EMPLOYMENT_TYPES, GRADE_CLASS,
 } from "../data.js";
+import { paintWeekly, paintFollowups, paintReport, renderStudentOps } from "./ops.js";
 import { renderSkillBlock } from "../skillblock.js";
 import { renderCoach } from "../coach.js";
 import { renderPortfolioReview } from "../pfreview.js";
@@ -55,7 +56,10 @@ const LS_KEY = "active_cohort";
 const lsGet = () => { try { return localStorage.getItem(LS_KEY); } catch { return null; } };
 const lsSet = (v) => { try { localStorage.setItem(LS_KEY, v); } catch {} };
 
+let IS_ADMIN = false;   // 취업 확정(검증) 버튼 노출용 — 실제 권한은 서버 트리거가 강제
+
 export async function renderInstructor(el, { session, profile }) {
+  IS_ADMIN = profile?.role === "admin";
   el.innerHTML = `
     <header class="topbar">
       <strong>강사 대시보드</strong>
@@ -65,8 +69,11 @@ export async function renderInstructor(el, { session, profile }) {
     <div id="cohortbar" class="cohortbar"></div>
     <nav class="tabs">
       <button data-tab="summary" class="on">현황</button>
+      <button data-tab="weekly">주차현황</button>
       <button data-tab="kpi">실적</button>
       <button data-tab="students">학생</button>
+      <button data-tab="followup">사후관리</button>
+      <button data-tab="report">성과보고</button>
       <button data-tab="postings">공고</button>
       <button data-tab="roster">명단</button>
     </nav>
@@ -82,6 +89,9 @@ export async function renderInstructor(el, { session, profile }) {
     if (!cohort) return;
     tabs.forEach((b) => b.classList.toggle("on", b.dataset.tab === name));
     if (name === "summary") paintSummary(pane, cohort);
+    if (name === "weekly") paintWeekly(pane, cohort);
+    if (name === "followup") paintFollowups(pane, cohort);
+    if (name === "report") paintReport(pane, cohort);
     if (name === "kpi") paintKPI(pane, cohort);
     if (name === "students") paintStudents(pane, cohort);
     if (name === "postings") paintPostings(pane);
@@ -420,8 +430,8 @@ async function paintStudents(pane, cohort) {
     return artMark[hit?.status || "미확인"];
   }).join(" ");
 
-  const rank = { delayed: 0, data_mismatch: 1, check: 2, normal: 3, ahead: 4, placed: 5 };
-  const sorted = [...rows].sort((a, b) => (rank[a.status] ?? 9) - (rank[b.status] ?? 9) || a.code.localeCompare(b.code));
+  // 번호순 고정 — 상태·위험도 기준 학생 정렬(순위화)은 하지 않음 (STEP 13 금지사항)
+  const sorted = [...rows].sort((a, b) => a.code.localeCompare(b.code));
 
   const tr = sorted.map((r) => {
     const na = nextAction(r);
@@ -445,7 +455,7 @@ async function paintStudents(pane, cohort) {
   }).join("") || "<li class='muted'>없음</li>";
 
   pane.innerHTML = `
-    <div class="card"><h2>이번 주 우선 (${todo.length}명)</h2><ul class="gates">${todoList}</ul></div>
+    <div class="card"><h2>확인 필요 (${todo.length}명 · 번호순)</h2><ul class="gates">${todoList}</ul></div>
     <div class="card"><div class="scroll-x"><table class="rowlink">
       <tr><th>번호</th><th>트랙</th><th>단계</th><th>상태</th>
           <th class="small">이력·자소·PDF·랜딩·피그마</th><th>다음 액션</th></tr>
@@ -581,7 +591,8 @@ async function openDetail(host, id, refresh) {
         <button id="em-save">${emp ? "수정" : "확정"}</button>
         <span id="em-msg" class="msg"></span>
       </div>
-      <p class="muted small">확정 시 학생 상태가 자동으로 "취업 확정 · 졸업"으로 바뀝니다.</p>
+      <p class="muted small">등록만으로는 확정되지 않습니다. 관리자가 증빙을 확인해 검증하면 "취업 확정 · 졸업"으로 바뀝니다.</p>
+      <div id="i-ops"></div>
 
       <h2>피드백 추가</h2>
       <div class="row">
@@ -598,6 +609,8 @@ async function openDetail(host, id, refresh) {
   host.querySelector("#dclose").onclick = () => (host.innerHTML = "");
   renderSkillBlock(host.querySelector("#i-skillblock"), id, { canVerify: true, canEditExperience: true });
   renderPortfolioReview(host.querySelector("#i-pfreviewbox"), id, { reviewerAs: "instructor" });
+  renderStudentOps(host.querySelector("#i-ops"), {
+    studentId: id, code: s.code, student: s, isAdmin: IS_ADMIN, onChange: refresh });
   renderCoach(host.querySelector("#i-coachbox"), id);
 
   host.querySelectorAll(".im-gap").forEach((b) => {

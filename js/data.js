@@ -38,7 +38,7 @@ export async function listStudents(cohortId) {
 export async function getStudentDetail(studentId) {
   const [s, fb, log] = await Promise.all([
     supabase.from("students")
-      .select("id, code, track, stage, status, note, artifacts(id, type, status, external_url, storage_path)")
+      .select("id, code, track, stage, status, note, completion_status, outcome_status, outcome_note, report_included, artifacts(id, type, status, external_url, storage_path)")
       .eq("id", studentId).single(),
     supabase.from("feedback")
       .select("id, author, stage, body, created_at")
@@ -156,7 +156,7 @@ export async function deleteApplication(id) {
 export async function getEmployment(studentId) {
   const { data, error } = await supabase
     .from("employment_results")
-    .select("id, company, position, job_category, employment_type, hire_date, salary_range, note")
+    .select("id, company, position, job_category, employment_type, hire_date, salary_range, note, verified, verified_at, evidence_type, evidence_note, contract_checked, insurance_checked, retention_status, retention_checked_at")
     .eq("student_id", studentId).maybeSingle();
   if (error) throw error;
   return data;
@@ -413,3 +413,169 @@ export const STATUS = {
   ahead: "🔵 여유", placed: "✅ 확정", data_mismatch: "⚠️ 불일치",
 };
 export const ARTIFACT_TYPES = ["이력서", "자기소개서", "포트폴리오PDF", "HTML랜딩", "피그마포폴"];
+
+
+/* ---------- STEP 13: 성과보고 · 면접 · 사후관리 · 주차별 현황 ----------
+   원칙: 보고서의 모든 수치는 cgd_final_report() 한 곳에서만 나온다 (관제판·보고서·사후관리 동일 원본).
+   취업 확정 = 관리자 검증. AI·자동 확정 없음. */
+async function rpc(name, args) {
+  const { data, error } = await supabase.rpc(name, args);
+  if (error) throw error;
+  return data;
+}
+export const getFinalReport = (from, to, cohort = null) =>
+  rpc("cgd_final_report", { p_from: from, p_to: to, p_cohort: cohort });
+export const getStudentReport = (from, to, cohort = null) =>
+  rpc("cgd_student_report", { p_from: from, p_to: to, p_cohort: cohort });
+export const getDataQuality = (cohort = null) => rpc("cgd_data_quality", { p_cohort: cohort });
+export const getTodayTasks = (cohort = null) => rpc("cgd_today_tasks", { p_cohort: cohort });
+export const ensureFollowups = (cohort = null, milestones = [30, 90]) =>
+  rpc("cgd_ensure_followups", { p_cohort: cohort, p_milestones: milestones });
+export const getWeeklyBoard = (week = null, cohort = null) =>
+  rpc("cgd_weekly_board", { p_week: week || new Date().toISOString().slice(0, 10), p_cohort: cohort });
+
+/** 학과장 운영보고 · 공동훈련센터 보고 · 기관 제출용 요약 — 같은 원본에서 표시 범위만 다름 */
+export async function getDepartmentHeadReport(from, to, cohort = null) {
+  const [report, quality, tasks] = await Promise.all([
+    getFinalReport(from, to, cohort), getDataQuality(cohort), getTodayTasks(cohort)]);
+  return { report, quality, tasks };
+}
+export async function getJointTrainingCenterReport(from, to, cohort = null) {
+  const [report, students] = await Promise.all([
+    getFinalReport(from, to, cohort), getStudentReport(from, to, cohort)]);
+  return { report, students };
+}
+export async function getInstitutionSummaryReport(from, to, cohort = null) {
+  const [report, quality] = await Promise.all([getFinalReport(from, to, cohort), getDataQuality(cohort)]);
+  return { report, quality, needs_supplement: quality.needs_supplement };
+}
+
+export const OUTCOME_LABEL = {
+  DATA_PENDING: "자료 미입력", NOT_EMPLOYED: "미취업", HOLD: "보류",
+  INELIGIBLE: "취업불가", REFUSED: "취업거부", UNREACHABLE: "연락불가",
+};
+export const INTERVIEW_RESULT = {
+  SCHEDULED: "예정", PASSED: "합격", FAILED: "불합격", PENDING: "결과 대기", CANCELLED: "취소",
+};
+export const DOC_KIND = {
+  RESUME: "이력서", COVER_LETTER: "자기소개서", PORTFOLIO: "포트폴리오",
+  FEEDBACK: "피드백", JOB_POSTING: "채용공고", OTHER: "기타",
+};
+export const RETENTION = ["재직중", "이직", "퇴사", "확인불가"];
+export const FOLLOWUP_STATUS = { SCHEDULED: "예정", COMPLETED: "완료", UNREACHABLE: "연락불가", CANCELLED: "취소" };
+
+/* ---- 면접 ---- */
+export async function listInterviews(studentId) {
+  const { data, error } = await supabase
+    .from("interviews")
+    .select("id, company, position, interview_date, round, format, result, note, interview_documents(id, kind, title, storage_path, note, created_at)")
+    .eq("student_id", studentId)
+    .order("interview_date", { ascending: false, nullsFirst: true });
+  if (error) throw error;
+  return data;
+}
+export async function saveInterview(studentId, row) {
+  const { id, interview_documents, ...patch } = row;
+  const q = id
+    ? supabase.from("interviews").update(patch).eq("id", id)
+    : supabase.from("interviews").insert({ student_id: studentId, ...patch });
+  const { error } = await q;
+  if (error) throw error;
+}
+export async function deleteInterview(id) {
+  const { error } = await supabase.from("interviews").delete().eq("id", id);
+  if (error) throw error;
+}
+/** 면접 건별 자료 업로드: {학생번호}/면접/{면접ID}/{종류}_{시각}.{확장자} */
+export async function uploadInterviewDoc(code, studentId, interviewId, kind, title, file, note = null) {
+  const ext = (file.name.split(".").pop() || "bin").toLowerCase();
+  const path = `${code}/면접/${interviewId}/${kind}_${Date.now()}.${ext}`;
+  const up = await supabase.storage.from(BUCKET).upload(path, file, { upsert: false });
+  if (up.error) throw up.error;
+  const { error } = await supabase.from("interview_documents").insert({
+    interview_id: interviewId, student_id: studentId, kind, title: title || file.name, storage_path: path, note });
+  if (error) throw error;
+  return path;
+}
+export async function deleteInterviewDoc(doc) {
+  if (doc.storage_path) await supabase.storage.from(BUCKET).remove([doc.storage_path]);
+  const { error } = await supabase.from("interview_documents").delete().eq("id", doc.id);
+  if (error) throw error;
+}
+
+/* ---- 취업 확정(검증) · 취업 후 관리 ---- */
+export async function verifyEmployment(studentId, verified, evidence = {}) {
+  const { error } = await supabase.from("employment_results")
+    .update({ verified, ...(verified ? evidence : {}) }).eq("student_id", studentId);
+  if (error) throw error;   // 강사 계정이면 서버가 42501 로 거부
+}
+export async function setEmploymentCare(studentId, patch) {
+  const { error } = await supabase.from("employment_results").update(patch).eq("student_id", studentId);
+  if (error) throw error;
+}
+export async function setOutcomeStatus(studentId, outcome_status, outcome_note = null) {
+  await updateStudent(studentId, { outcome_status, outcome_note });
+}
+export async function setCompletionStatus(studentId, completion_status) {
+  await updateStudent(studentId, { completion_status });
+}
+
+/* ---- 사후관리 ---- */
+export async function listFollowups(cohortId) {
+  const { data, error } = await supabase
+    .from("followups")
+    .select("id, student_id, milestone_days, due_date, actual_date, status, employment_state, note, students!inner(code, cohort_id, report_included)")
+    .eq("students.cohort_id", cohortId).eq("students.report_included", true)
+    .order("due_date");
+  if (error) throw error;
+  return data;
+}
+export async function saveFollowup(id, patch) {
+  const { error } = await supabase.from("followups").update(patch).eq("id", id);
+  if (error) throw error;
+}
+
+/* ---- 주차별 진로지도 기록 ---- */
+export function mondayOf(d = new Date()) {
+  const x = new Date(d); const day = (x.getDay() + 6) % 7;
+  x.setDate(x.getDate() - day);
+  return x.toISOString().slice(0, 10);
+}
+export async function saveWeeklyGuidance(studentId, weekStart, patch) {
+  const { error } = await supabase.from("weekly_guidance")
+    .upsert({ student_id: studentId, week_start: weekStart, ...patch }, { onConflict: "student_id,week_start" });
+  if (error) throw error;
+}
+
+/* ---- 내보내기: 화면과 동일한 원본(getFinalReport 결과)만 사용 ---- */
+const esc = (v) => String(v ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const fmt = (v, unit = "") => (v === null || v === undefined ? "산출 불가" : v + unit);
+
+export function exportReportHtml(report, quality = null) {
+  const k = report.kpi, p = report.population, o = report.outcome_breakdown, s = report.settings;
+  const stamp = quality?.needs_supplement || !s.criteria_confirmed
+    ? '<p style="border:2px solid #EF6C4A;color:#D45233;padding:8px 12px;border-radius:12px;font-weight:700">자료보완 필요 — 기관 인정기준 또는 데이터 검증 항목이 남아 있습니다.</p>' : "";
+  const row = (a, b) => `<tr><th>${esc(a)}</th><td>${esc(b)}</td></tr>`;
+  return `<!doctype html><meta charset="utf-8"><title>${esc(s.program_name)} 성과보고</title>
+<style>body{font:14px/1.6 -apple-system,"Apple SD Gothic Neo",sans-serif;max-width:820px;margin:24px auto;color:#17403D}
+table{border-collapse:collapse;width:100%;margin:8px 0 20px}th,td{border:1px solid #D3E7E5;padding:7px 10px;text-align:left}th{background:#E8F6F5;width:42%}
+h1{color:#1E8C86}h2{border-bottom:2px dashed #3CC4BD;padding-bottom:4px}</style>
+<h1>${esc(s.program_name)} 성과보고</h1>
+<p>${esc(report.cohort.name)} · 기간 ${esc(report.period.from)} ~ ${esc(report.period.to)} · <b>기준일 ${esc(report.basis_date)}</b> · 생성일 ${esc(String(report.generated_at).slice(0, 10))}</p>${stamp}
+<h2>인원</h2><table>${row("보고 대상자", p.report_target + "명")}${row("수료자", p.completed + "명")}${row("중도탈락", p.dropped + "명")}${row("보고 제외", p.excluded + "명")}</table>
+<h2>핵심 지표</h2><table>${row("취업 확정(관리자 검증)", k.employed_confirmed + "명")}${row("검증 대기", k.employed_pending_verification + "명")}
+${row("취업률 (분모: " + s.denominator_label + " " + k.employment_rate_denominator + "명)", fmt(k.employment_rate, "%"))}${row("증빙 기재율", fmt(k.evidence_rate, "%"))}
+${row("지원 건수", k.application_count + "건")}${row("면접 건수", k.interview_count + "건")}${row("사후관리 완료율", fmt(k.followup_rate, "%"))}</table>
+<h2>성과 분포</h2><table>${row("취업 확정", o.employed)}${row("미취업", o.not_employed)}${row("보류", o.hold)}${row("취업불가", o.ineligible)}${row("취업거부", o.refused)}${row("연락불가", o.unreachable)}${row("자료 미입력(미취업 아님)", o.data_pending)}</table>
+<h2>산출 기준</h2><table>${Object.values(report.definitions).map((d, i) => row(String(i + 1), d)).join("")}</table>
+<p style="color:#5F7F7C">본 보고서의 수치는 원본 DB의 관리자 검증 자료에서만 산출되었으며, 학생 실명·연락처는 포함하지 않습니다.</p>`;
+}
+
+export function exportReportCsv(students) {
+  const head = ["번호", "트랙", "단계", "수료", "성과상태", "보고포함", "지원(기간)", "면접(기간)", "취업검증", "회사", "입사일", "증빙"];
+  const rows = students.rows.map((r) => [r.code, r.track, r.stage, r.completion_status, OUTCOME_LABEL[r.outcome_status] || r.outcome_status,
+    r.report_included ? "Y" : "N", r.application_count, r.interview_count,
+    r.employment ? (r.employment.verified ? "검증" : "대기") : "", r.employment?.company || "", r.employment?.hire_date || "", r.employment?.evidence_type || ""]);
+  const cell = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  return "\uFEFF" + [head, ...rows].map((r) => r.map(cell).join(",")).join("\r\n");
+}

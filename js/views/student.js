@@ -7,6 +7,7 @@ import {
   STAGES, STATUS, ARTIFACT_TYPES, APPLICATION_STATUS, JOB_CATEGORIES,
   EMPLOYMENT_TYPES, GRADE_CLASS,
 } from "../data.js";
+import { renderInterviews } from "./ops.js";
 import { renderSkillBlock } from "../skillblock.js";
 import { renderCoach } from "../coach.js";
 import { renderPortfolioReview } from "../pfreview.js";
@@ -135,6 +136,12 @@ async function paint(pane, studentId) {
     </div>
 
     <div class="card">
+      <h2>내 면접 · 지원기업 자료</h2>
+      <p class="muted small">면접을 볼 기업·직무를 등록하고, 면접 결과(합격·불합격)와 제출한 이력서·자소서·포트폴리오, 받은 피드백 자료를 올려 두세요.</p>
+      <div id="my-interviews"></div>
+    </div>
+
+    <div class="card">
       <h2>내 지원 관리 (${apps.length})</h2>
       ${emp ? `<p class="badge">🎉 취업 확정 · ${esc(emp.company)}${emp.position ? " · " + esc(emp.position) : ""}</p>` : ""}
       <div class="scroll-x"><table>
@@ -190,6 +197,7 @@ async function paint(pane, studentId) {
   renderCoach(pane.querySelector("#coachbox"), studentId);
   wireArtifacts(pane, s, studentId, () => paint(pane, studentId));
   wireApplications(pane, studentId, () => paint(pane, studentId));
+  renderInterviews(pane.querySelector("#my-interviews"), { studentId, code: s.code });
 
   pane.querySelectorAll(".jp-apply").forEach((b) => {
     b.onclick = async () => {

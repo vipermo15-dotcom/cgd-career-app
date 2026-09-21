@@ -222,8 +222,8 @@ async function paintCompanies(pane) {
 
 async function paintConfig(pane) {
   pane.innerHTML = `<p class="muted">불러오는 중…</p>`;
-  let mw, rw;
-  try { [mw, rw] = await Promise.all([getConfig("matching_weights"), getConfig("readiness_weights")]); }
+  let mw, rw, rs;
+  try { [mw, rw, rs] = await Promise.all([getConfig("matching_weights"), getConfig("readiness_weights"), getConfig("report_settings")]); }
   catch (e) { pane.innerHTML = `<div class="card err">${esc(e.message)}</div>`; return; }
 
   const block = (id, title, keys, obj) => {
@@ -243,7 +243,9 @@ async function paintConfig(pane) {
   };
   pane.innerHTML =
     block("matching_weights", "Matching 가중치 (8요소)", MATCH_WEIGHT_KEYS, mw || {}) +
-    block("readiness_weights", "Readiness 가중치 (5요소)", READINESS_WEIGHT_KEYS, rw || {});
+    block("readiness_weights", "Readiness 가중치 (5요소)", READINESS_WEIGHT_KEYS, rw || {}) +
+    reportSettingsCard(rs || {});
+  wireReportSettings(pane, rs || {});
 
   pane.querySelectorAll("[data-cfg]").forEach((card) => {
     const key = card.dataset.cfg;
@@ -278,4 +280,57 @@ async function paintAi(pane) {
         <td class="small">${esc((r.input_summary || "").slice(0, 60))}</td>
       </tr>`).join("") || `<tr><td colspan="5" class="muted">없음</td></tr>`}
     </table></div></div>`;
+}
+
+/* ---------- 성과보고 기준 설정 (기관 확인 후 입력 — 확정 전에는 보고서에 「자료보완 필요」 표시) ---------- */
+const ALL_EMP_TYPES = ["정규직", "계약직", "인턴", "프리랜서", "기타"];
+const DENOMS = { target: "보고 대상자 (기본)", completed: "수료자", enrolled: "재적자 (중도탈락 제외)" };
+
+function reportSettingsCard(c) {
+  const types = c.recognized_employment_types || ALL_EMP_TYPES;
+  return `<div class="card" data-rs="1">
+    <h2>성과보고 기준 <span class="badge">${c.criteria_confirmed ? "기관 기준 확정" : "기관 기준 미확정"}</span></h2>
+    <p class="muted small">취업률 분모와 인정 고용형태는 기관(공동훈련센터) 지침을 확인한 뒤 확정하세요. 확정 전에는 모든 보고서에 「자료보완 필요」가 표시됩니다.</p>
+    <div class="row">
+      <label class="small">취업률 분모
+        <select id="rs-denom">${Object.entries(DENOMS).map(([k, v]) =>
+          `<option value="${k}" ${k === (c.employment_rate_denominator || "target") ? "selected" : ""}>${v}</option>`).join("")}</select></label>
+      <label class="small">성과 기준일수 (수료일 + N일)
+        <input id="rs-days" type="number" min="1" max="730" value="${Number(c.outcome_days) || 90}" style="width:90px"></label>
+      <label class="small">지원 후 미확인 알림 (일)
+        <input id="rs-stale" type="number" min="1" max="90" value="${Number(c.stale_application_days) || 14}" style="width:90px"></label>
+    </div>
+    <div class="row"><span class="small muted">인정 고용형태</span>
+      ${ALL_EMP_TYPES.map((t) => `<label class="chk"><input type="checkbox" class="rs-type" value="${t}" ${types.includes(t) ? "checked" : ""}> ${t}</label>`).join("")}
+    </div>
+    <div class="row">
+      <input id="rs-inst" placeholder="기관명 (보고서 표기)" value="${esc(c.institution_name || "")}">
+      <input id="rs-prog" placeholder="과정명" value="${esc(c.program_name || "")}">
+    </div>
+    <label class="chk"><input type="checkbox" id="rs-ok" ${c.criteria_confirmed ? "checked" : ""}>
+      기관 취업 인정기준과 취업률 분모를 <b>확인했으며 위 설정이 맞습니다</b></label>
+    <div class="row"><button id="rs-save" type="button">저장</button><span id="rs-msg" class="msg"></span></div>
+  </div>`;
+}
+
+function wireReportSettings(pane, current) {
+  const card = pane.querySelector("[data-rs]");
+  const g = (sel) => card.querySelector(sel);
+  g("#rs-save").onclick = async () => {
+    const m = g("#rs-msg");
+    const types = [...card.querySelectorAll(".rs-type:checked")].map((i) => i.value);
+    if (!types.length) { m.className = "msg err"; m.textContent = "인정 고용형태를 1개 이상 선택하세요"; return; }
+    const val = {
+      ...current,                                            // 알 수 없는 기존 키는 보존
+      employment_rate_denominator: g("#rs-denom").value,
+      outcome_days: Number(g("#rs-days").value) || 90,
+      stale_application_days: Number(g("#rs-stale").value) || 14,
+      recognized_employment_types: types,
+      institution_name: g("#rs-inst").value.trim(),
+      program_name: g("#rs-prog").value.trim(),
+      criteria_confirmed: g("#rs-ok").checked,
+    };
+    try { await setConfig("report_settings", val); m.className = "msg ok"; m.textContent = "저장됨 (다음 보고서 생성부터 적용)"; }
+    catch (e) { m.className = "msg err"; m.textContent = e.message; }
+  };
 }
