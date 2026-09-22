@@ -9,8 +9,9 @@ import {
   listInterviews, saveInterview, deleteInterview, uploadInterviewDoc, deleteInterviewDoc, signedUrl,
   verifyEmployment, setEmploymentCare, setOutcomeStatus, setCompletionStatus, getEmployment,
   getControlTower, getEmployerDirectory, listMentorNotes, addMentorNote, deleteMentorNote,
-  getTopMatches, listPortfolioReviews, setStudentGithubUrl,
+  getTopMatches, listPortfolioReviews, setStudentGithubUrl, setEmployment,
   OUTCOME_LABEL, INTERVIEW_RESULT, DOC_KIND, RETENTION, FOLLOWUP_STATUS, STAGES, GRADE_CLASS,
+  JOB_CATEGORIES, EMPLOYMENT_TYPES,
 } from "../data.js";
 
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) =>
@@ -524,11 +525,11 @@ export async function paintControlTower(pane, cohort, { onNavigate } = {}) {
   });
 }
 
-export async function paintEmployerDirectory(pane, cohort) {
+export async function paintEmployerDirectory(pane, cohort, { canRegister } = {}) {
   pane.innerHTML = skeleton(4);
   let ed;
   try { ed = await getEmployerDirectory(null, null, cohort); }
-  catch (e) { return renderError(pane, e, () => paintEmployerDirectory(pane, cohort)); }
+  catch (e) { return renderError(pane, e, () => paintEmployerDirectory(pane, cohort, { canRegister })); }
   const rows = ed.rows.map((r) => `
     <tr><td><b>${esc(r.student_code)}</b></td><td>${esc(r.company)}</td><td>${esc(r.position || "")}</td>
       <td>${esc(r.employment_type || "")}</td><td>${esc(r.hire_date || "")}</td>
@@ -537,12 +538,72 @@ export async function paintEmployerDirectory(pane, cohort) {
     || `<tr><td colspan="9" class="muted">검증된 취업자가 없습니다.</td></tr>`;
   pane.innerHTML = `
     <div class="card">
-      <h1 style="margin:0 0 4px">업체현황</h1>
-      <p class="muted small">관리자 검증을 마친 취업자 전원(인정 형태 무관) — 공식 취업률 집계와 범위가 다릅니다.</p>
+      <div class="row" style="justify-content:space-between;align-items:flex-start">
+        <div><h1 style="margin:0 0 4px">업체현황</h1>
+          <p class="muted small">관리자 검증을 마친 취업자 전원(인정 형태 무관) — 공식 취업률 집계와 범위가 다릅니다.</p></div>
+        ${canRegister ? `<button id="ef-open" type="button">+ 취업 확정 등록</button>` : ""}
+      </div>
+      <div id="ef-form"></div>
       <div class="scroll-x"><table class="tbl-cards">
         <tr><th>번호</th><th>업체</th><th>직무</th><th>고용형태</th><th>입사일</th><th>계약서</th><th>보험</th><th>재직상태</th><th>증빙</th></tr>
         ${rows}</table></div>
     </div>`;
+  if (canRegister) {
+    pane.querySelector("#ef-open").onclick = () =>
+      employmentQuickForm(pane.querySelector("#ef-form"), cohort, () => paintEmployerDirectory(pane, cohort, { canRegister }));
+  }
+}
+
+/* 「+ 취업 확정 등록」 — 번호 대신 이름으로 찾아 등록. 등록만으로는 확정 안 됨(관리자 검증 별도). */
+async function employmentQuickForm(host, cohort, done) {
+  const { supabase } = await import("../supabase.js");
+  let studs = [];
+  try {
+    const { data, error } = await supabase.from("students").select("id, code, display_name")
+      .eq("cohort_id", cohort).eq("report_included", true).order("code");
+    if (error) throw error; studs = data || [];
+  } catch (e) { host.innerHTML = `<p class="msg err">${esc(e.message)}</p>`; return; }
+  const studentOpts = studs.map((s) =>
+    `<option value="${s.id}">${esc(s.display_name ? `${s.display_name} (${s.code})` : s.code)}</option>`).join("");
+  const catOpts = Object.entries(JOB_CATEGORIES).map(([k, v]) => `<option value="${k}">${k} · ${v}</option>`).join("");
+  const typeOpts = EMPLOYMENT_TYPES.map((t) => `<option>${t}</option>`).join("");
+  host.innerHTML = `
+    <div class="card" style="margin-top:12px">
+      <h2>취업 확정 등록</h2>
+      <div class="row">
+        <select id="ef-student" style="min-width:160px">${studentOpts}</select>
+        <input id="ef-company" placeholder="취업처">
+        <input id="ef-pos" placeholder="직무명">
+        <select id="ef-cat">${catOpts}</select>
+        <select id="ef-type">${typeOpts}</select>
+        <label class="small">입사(예정)일 <input id="ef-date" type="date"></label>
+      </div>
+      <div class="row">
+        <button id="ef-save" type="button">등록</button>
+        <button class="ghost" id="ef-cancel" type="button">닫기</button>
+        <span id="ef-msg" class="msg"></span>
+      </div>
+      <p class="muted small">등록만으로는 확정되지 않습니다. 관리자가 증빙을 확인해 검증해야 취업률에 반영됩니다.</p>
+    </div>`;
+  host.querySelector("#ef-cancel").onclick = () => (host.innerHTML = "");
+  host.querySelector("#ef-save").onclick = async (e) => {
+    const m = host.querySelector("#ef-msg");
+    const company = host.querySelector("#ef-company").value.trim();
+    if (!company) { setMsg(m, "취업처를 입력하세요", "err"); return; }
+    await withBusy(e.target, async () => {
+      try {
+        await setEmployment(host.querySelector("#ef-student").value, {
+          company,
+          position: host.querySelector("#ef-pos").value.trim() || null,
+          job_category: host.querySelector("#ef-cat").value || null,
+          employment_type: host.querySelector("#ef-type").value,
+          hire_date: host.querySelector("#ef-date").value || null,
+        });
+        toast("등록했어요. 관리자 검증이 필요합니다.");
+        done && done();
+      } catch (err) { setMsg(m, err.message, "err"); }
+    });
+  };
 }
 
 /* =====================================================================

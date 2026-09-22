@@ -29,7 +29,7 @@ export function renderAdmin(el, { session }) {
   const tabs = [...el.querySelectorAll(".tabs button")];
   const show = (n) => {
     markTab(tabs, n);
-    ({ control: () => paintControlTower(pane, null, { onNavigate: nav }), users: paintUsers, employer: () => paintEmployerDirectory(pane, null),
+    ({ control: () => paintControlTower(pane, null, { onNavigate: nav }), users: paintUsers, employer: () => paintEmployerDirectory(pane, null, { canRegister: true }),
        companies: paintCompanies, taxonomy: paintTaxonomy, config: paintConfig, ai: paintAi }[n])(pane);
   };
   // 종합관제판 카드 클릭 → 관리자 화면에 있는 탭(업체현황)은 바로 전환, 학생별 상세·성과보고·사후관리는 강사 화면으로 이동

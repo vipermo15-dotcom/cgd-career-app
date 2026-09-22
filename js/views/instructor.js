@@ -85,7 +85,7 @@ export async function renderInstructor(el, { session, profile }) {
     markTab(tabs, name);
     if (name === "summary") paintSummary(pane, cohort);
     if (name === "control") paintControlTower(pane, cohort, { onNavigate: nav });
-    if (name === "employer") paintEmployerDirectory(pane, cohort);
+    if (name === "employer") paintEmployerDirectory(pane, cohort, { canRegister: true });
     if (name === "weekly") paintWeekly(pane, cohort);
     if (name === "followup") paintFollowups(pane, cohort);
     if (name === "report") paintReport(pane, cohort);
