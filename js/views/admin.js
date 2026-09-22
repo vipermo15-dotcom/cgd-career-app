@@ -61,8 +61,10 @@ async function paintUsers(pane) {
       <div class="card"><h2>역할 분포</h2><div>${dist(d.by_role)}</div></div>
       <div class="card"><h2>취업 고용형태</h2><div>${dist(d.employment_by_type)}</div></div>
     </div>`;
-  const roleOpt = (r) => ["", "student", "instructor", "viewer", "admin"]
-    .map((v) => `<option value="${v}" ${v === (r || "") ? "selected" : ""}>${v || "(미지정)"}</option>`).join("");
+  const ROLE_LABEL = { "": "(미지정)", student: "student", instructor: "instructor",
+    viewer: "viewer(센터 열람)", center_lead: "center_lead(센터 팀장·담당)", admin: "admin" };
+  const roleOpt = (r) => Object.entries(ROLE_LABEL)
+    .map(([v, label]) => `<option value="${v}" ${v === (r || "") ? "selected" : ""}>${label}</option>`).join("");
   pane.innerHTML = overviewHtml + `
     <div class="card">
       <div class="row arow"><input id="u-q" type="search" placeholder="이메일로 검색" aria-label="회원 검색" style="max-width:320px">

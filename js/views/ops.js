@@ -10,6 +10,7 @@ import {
   verifyEmployment, setEmploymentCare, setOutcomeStatus, setCompletionStatus, getEmployment,
   getControlTower, getEmployerDirectory, listMentorNotes, addMentorNote, deleteMentorNote,
   getTopMatches, listPortfolioReviews, setStudentGithubUrl, setEmployment,
+  listCompanies, registerCompany, registerEmployment,
   OUTCOME_LABEL, INTERVIEW_RESULT, DOC_KIND, RETENTION, FOLLOWUP_STATUS, STAGES, GRADE_CLASS,
   JOB_CATEGORIES, EMPLOYMENT_TYPES,
 } from "../data.js";
@@ -525,11 +526,11 @@ export async function paintControlTower(pane, cohort, { onNavigate } = {}) {
   });
 }
 
-export async function paintEmployerDirectory(pane, cohort, { canRegister } = {}) {
+export async function paintEmployerDirectory(pane, cohort, { canRegister, useRpc } = {}) {
   pane.innerHTML = skeleton(4);
   let ed;
   try { ed = await getEmployerDirectory(null, null, cohort); }
-  catch (e) { return renderError(pane, e, () => paintEmployerDirectory(pane, cohort, { canRegister })); }
+  catch (e) { return renderError(pane, e, () => paintEmployerDirectory(pane, cohort, { canRegister, useRpc })); }
   const rows = ed.rows.map((r) => `
     <tr><td><b>${esc(r.student_code)}</b></td><td>${esc(r.company)}</td><td>${esc(r.position || "")}</td>
       <td>${esc(r.employment_type || "")}</td><td>${esc(r.hire_date || "")}</td>
@@ -550,12 +551,15 @@ export async function paintEmployerDirectory(pane, cohort, { canRegister } = {})
     </div>`;
   if (canRegister) {
     pane.querySelector("#ef-open").onclick = () =>
-      employmentQuickForm(pane.querySelector("#ef-form"), cohort, () => paintEmployerDirectory(pane, cohort, { canRegister }));
+      employmentQuickForm(pane.querySelector("#ef-form"), cohort,
+        () => paintEmployerDirectory(pane, cohort, { canRegister, useRpc }), { useRpc });
   }
 }
 
 /* 「+ 취업 확정 등록」 — 번호 대신 이름으로 찾아 등록. 등록만으로는 확정 안 됨(관리자 검증 별도). */
-async function employmentQuickForm(host, cohort, done) {
+/* useRpc: 강사·관리자는 기존 setEmployment(직접 upsert), center_lead 는 RLS 쓰기 권한이 없어
+   반드시 cgd_register_employment 함수(registerEmployment)로만 등록한다. */
+async function employmentQuickForm(host, cohort, done, { useRpc = false } = {}) {
   const { supabase } = await import("../supabase.js");
   let studs = [];
   try {
@@ -579,6 +583,11 @@ async function employmentQuickForm(host, cohort, done) {
         <label class="small">입사(예정)일 <input id="ef-date" type="date"></label>
       </div>
       <div class="row">
+        <input id="ef-contact" placeholder="채용 담당자 연락처(기업측)">
+        <label class="chk"><input type="checkbox" id="ef-partner"> 협약기업 등록 여부</label>
+      </div>
+      <textarea id="ef-note" rows="2" placeholder="특이사항 (실명·학생 연락처 입력 금지)"></textarea>
+      <div class="row">
         <button id="ef-save" type="button">등록</button>
         <button class="ghost" id="ef-cancel" type="button">닫기</button>
         <span id="ef-msg" class="msg"></span>
@@ -590,20 +599,88 @@ async function employmentQuickForm(host, cohort, done) {
     const m = host.querySelector("#ef-msg");
     const company = host.querySelector("#ef-company").value.trim();
     if (!company) { setMsg(m, "취업처를 입력하세요", "err"); return; }
+    const patch = {
+      company,
+      position: host.querySelector("#ef-pos").value.trim() || null,
+      job_category: host.querySelector("#ef-cat").value || null,
+      employment_type: host.querySelector("#ef-type").value,
+      hire_date: host.querySelector("#ef-date").value || null,
+      employer_contact: host.querySelector("#ef-contact").value.trim() || null,
+      is_partner_company: host.querySelector("#ef-partner").checked,
+      note: host.querySelector("#ef-note").value.trim() || null,
+    };
     await withBusy(e.target, async () => {
       try {
-        await setEmployment(host.querySelector("#ef-student").value, {
-          company,
-          position: host.querySelector("#ef-pos").value.trim() || null,
-          job_category: host.querySelector("#ef-cat").value || null,
-          employment_type: host.querySelector("#ef-type").value,
-          hire_date: host.querySelector("#ef-date").value || null,
+        const studentId = host.querySelector("#ef-student").value;
+        if (useRpc) await registerEmployment({ student_id: studentId, ...patch });
+        else await setEmployment(studentId, {
+          company: patch.company, position: patch.position, job_category: patch.job_category,
+          employment_type: patch.employment_type, hire_date: patch.hire_date,
+          employer_contact: patch.employer_contact, is_partner_company: patch.is_partner_company,
+          evidence_note: patch.note,
         });
         toast("등록했어요. 관리자 검증이 필요합니다.");
         done && done();
       } catch (err) { setMsg(m, err.message, "err"); }
     });
   };
+}
+
+/* =====================================================================
+   업체 등록 — 공동훈련센터(팀장·담당) 전용. 관리자는 기존 「기업」 탭(admin.js)의 전체 관리 화면을 그대로 씀.
+   ===================================================================== */
+export async function paintCompanyRegister(pane) {
+  const load = async () => {
+    pane.innerHTML = skeleton(2);
+    let rows;
+    try { rows = await listCompanies(); }
+    catch (e) { return renderError(pane, e, load); }
+    pane.innerHTML = `
+      <div class="card">
+        <h1 style="margin:0 0 4px">업체 등록</h1>
+        <p class="muted small">같은 기업명으로 다시 등록하면 정보가 갱신됩니다.</p>
+        <div class="row">
+          <input id="co-name" placeholder="기업명">
+          <input id="co-ind" placeholder="산업">
+          <input id="co-size" placeholder="규모(대기업/중견/스타트업)">
+          <input id="co-web" placeholder="website">
+        </div>
+        <div class="row">
+          <input id="co-note" placeholder="비고" style="flex:1;min-width:220px">
+          <label class="chk"><input type="checkbox" id="co-partner"> 협약기업으로 등록</label>
+          <button id="co-save" type="button">등록</button>
+          <span id="co-msg" class="msg"></span>
+        </div>
+      </div>
+      <div class="card">
+        <h2>등록된 업체 (${rows.length}곳)</h2>
+        <div class="scroll-x"><table class="tbl-cards">
+          <tr><th>기업명</th><th>산업</th><th>규모</th><th>협약</th></tr>
+          ${rows.map((c) => `<tr><td class="tc-title">${esc(c.name)}</td><td data-label="산업">${esc(c.industry || "—")}</td>
+            <td data-label="규모">${esc(c.size || "—")}</td><td data-label="협약">${c.is_partner ? "✔ 협약기업" : "—"}</td></tr>`).join("")
+            || `<tr><td colspan="4" class="muted">없음</td></tr>`}
+        </table></div>
+      </div>`;
+    pane.querySelector("#co-save").onclick = async (e) => {
+      const m = pane.querySelector("#co-msg");
+      const name = pane.querySelector("#co-name").value.trim();
+      if (!name) { setMsg(m, "기업명을 입력하세요", "err"); return; }
+      await withBusy(e.target, async () => {
+        try {
+          await registerCompany({
+            name, industry: pane.querySelector("#co-ind").value.trim() || null,
+            size: pane.querySelector("#co-size").value.trim() || null,
+            website: pane.querySelector("#co-web").value.trim() || null,
+            note: pane.querySelector("#co-note").value.trim() || null,
+            is_partner: pane.querySelector("#co-partner").checked,
+          });
+          toast("등록했어요.");
+          load();
+        } catch (err) { setMsg(m, err.message, "err"); }
+      });
+    };
+  };
+  await load();
 }
 
 /* =====================================================================

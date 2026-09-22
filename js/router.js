@@ -19,12 +19,12 @@ const ROUTES = {
 function homeFor(profile) {
   if (!profile) return "#/login";
   if (profile.role === "admin") return "#/admin";
-  if (profile.role === "viewer") return "#/viewer";
+  if (profile.role === "viewer" || profile.role === "center_lead") return "#/viewer";
   return profile.role === "instructor" ? "#/instructor" : "#/student";
 }
 // admin 은 instructor 화면도 접근 가능
 const roleOk = (need, role) =>
-  !need || need === role || (role === "admin" && need === "instructor");
+  !need || need === role || (role === "admin" && need === "instructor") || (role === "center_lead" && need === "viewer");
 
 export async function route() {
   const session = await getSession();

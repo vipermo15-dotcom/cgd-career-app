@@ -354,7 +354,7 @@ export async function deleteRef(table, id) {
 }
 export async function listCompanies() {
   const { data, error } = await supabase.from("companies")
-    .select("id, name, industry, size, website, note").order("name");
+    .select("id, name, industry, size, website, note, is_partner").order("name");
   if (error) throw error; return data;
 }
 export async function saveCompany(row) {
@@ -612,5 +612,26 @@ export async function setMyGithubUrl(url) {
 }
 export async function setStudentGithubUrl(studentId, url) {
   const { error } = await supabase.from("students").update({ github_url: url || null }).eq("id", studentId);
+  if (error) throw error;
+}
+
+/* ---------- STEP 15: 공동훈련센터(팀장·담당) 등록 전용 함수 ---------- */
+export async function registerCompany({ name, industry, size, website, note, is_partner }) {
+  const { error } = await supabase.rpc("cgd_register_company", {
+    p_name: name, p_industry: industry || null, p_size: size || null,
+    p_website: website || null, p_note: note || null, p_is_partner: !!is_partner,
+  });
+  if (error) throw error;
+}
+export async function registerEmployment({
+  student_id, company, position, job_category, employment_type, hire_date,
+  employer_contact, is_partner_company, note,
+}) {
+  const { error } = await supabase.rpc("cgd_register_employment", {
+    p_student: student_id, p_company: company, p_position: position || null,
+    p_job_category: job_category || null, p_employment_type: employment_type || "정규직",
+    p_hire_date: hire_date || null, p_employer_contact: employer_contact || null,
+    p_is_partner_company: !!is_partner_company, p_note: note || null,
+  });
   if (error) throw error;
 }

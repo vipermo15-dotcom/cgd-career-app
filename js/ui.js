@@ -180,6 +180,8 @@ export const TAB_ICONS = {
   followup: '<rect x="5" y="4" width="14" height="17" rx="3"/><path d="M9 4h6v3H9z"/><path d="M9 14l2 2 4-4"/>',
   report: '<path d="M6 3h8l4 4v14H6z"/><path d="M9 12h6M9 16h6"/>',
   postings: BAG, roster: '<path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 20h16"/>',
+  // 공동훈련센터(팀장·담당)
+  register: '<path d="M12 5v14M5 12h14"/>',
 };
 export function tabBtn(key, label, on = false) {
   return `<button data-tab="${key}" ${on ? 'class="on" aria-current="page"' : 'aria-current="false"'}>` +
