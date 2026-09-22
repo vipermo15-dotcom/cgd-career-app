@@ -99,7 +99,7 @@ export async function getCohortExport(cohortId) {
 export async function getMyDossier(studentId) {
   const [s, log] = await Promise.all([
     supabase.from("students")
-      .select("id, code, display_name, track, stage, status, artifacts(id, type, status, external_url, storage_path)")
+      .select("id, code, display_name, track, stage, status, github_url, artifacts(id, type, status, external_url, storage_path)")
       .eq("id", studentId).single(),
     supabase.from("activity_log")
       .select("id, actor, action, detail, created_at")
@@ -587,3 +587,30 @@ export async function getNameMap(cohortId) {
   return Object.fromEntries((data || []).map((r) => [r.code, r.display_name || ""]));
 }
 export const whoLabel = (map, code) => (map && map[code] ? `${map[code]} (${code})` : code);
+
+/* ---------- STEP 14: 종합관제판 · 업체현황 · 특이사항 · 깃허브 링크 ---------- */
+export const getControlTower = (cohort = null) => rpc("cgd_control_tower", { p_cohort: cohort });
+export const getEmployerDirectory = (from = null, to = null, cohort = null) =>
+  rpc("cgd_employer_directory", { p_from: from, p_to: to, p_cohort: cohort });
+
+export async function listMentorNotes(studentId) {
+  const { data, error } = await supabase.from("mentor_notes")
+    .select("id, note, created_at, author").eq("student_id", studentId).order("created_at", { ascending: false });
+  if (error) throw error; return data;
+}
+export async function addMentorNote(studentId, note) {
+  const { error } = await supabase.from("mentor_notes").insert({ student_id: studentId, note });
+  if (error) throw error;
+}
+export async function deleteMentorNote(id) {
+  const { error } = await supabase.from("mentor_notes").delete().eq("id", id);
+  if (error) throw error;
+}
+export async function setMyGithubUrl(url) {
+  const { error } = await supabase.rpc("set_my_github_url", { p_url: url || null });
+  if (error) throw error;
+}
+export async function setStudentGithubUrl(studentId, url) {
+  const { error } = await supabase.from("students").update({ github_url: url || null }).eq("id", studentId);
+  if (error) throw error;
+}

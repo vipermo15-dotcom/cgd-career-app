@@ -1,6 +1,6 @@
 // STEP 13 운영 화면: 주차별 현황 · 사후관리/90일 성과 · 성과보고서 · 교육생별 면접·자료·취업후관리
 // 원칙: 수치는 cgd_* RPC 원본만 사용. 점수·순위·취업 가능성 표시 없음. 취업 확정은 관리자 검증만.
-import { toast, confirmDialog, skeleton, renderError } from "../ui.js";
+import { toast, confirmDialog, skeleton, renderError, withBusy, setMsg } from "../ui.js";
 import {
   getWeeklyBoard, saveWeeklyGuidance, mondayOf, getNameMap, whoLabel,
   getFinalReport, getStudentReport, getDataQuality, getTodayTasks, ensureFollowups,
@@ -8,7 +8,9 @@ import {
   listFollowups, saveFollowup, exportReportHtml, exportReportCsv,
   listInterviews, saveInterview, deleteInterview, uploadInterviewDoc, deleteInterviewDoc, signedUrl,
   verifyEmployment, setEmploymentCare, setOutcomeStatus, setCompletionStatus, getEmployment,
-  OUTCOME_LABEL, INTERVIEW_RESULT, DOC_KIND, RETENTION, FOLLOWUP_STATUS, STAGES,
+  getControlTower, getEmployerDirectory, listMentorNotes, addMentorNote, deleteMentorNote,
+  getTopMatches, listPortfolioReviews, setStudentGithubUrl,
+  OUTCOME_LABEL, INTERVIEW_RESULT, DOC_KIND, RETENTION, FOLLOWUP_STATUS, STAGES, GRADE_CLASS,
 } from "../data.js";
 
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) =>
@@ -457,4 +459,156 @@ export async function renderStudentOps(host, { studentId, code, student, isAdmin
     }
   };
   await paint();
+}
+
+
+/* =====================================================================
+   0) 종합관제판 · 업체현황 (강사·관리자·센터 공용)
+   ===================================================================== */
+export async function paintControlTower(pane, cohort) {
+  pane.innerHTML = skeleton(4);
+  let ct;
+  try { ct = await getControlTower(cohort); }
+  catch (e) { return renderError(pane, e, () => paintControlTower(pane, cohort)); }
+  const emp = ct.employment;
+  const kpi = (label, v) => `<div class="card kpi"><span>${label}</span><b>${v}</b></div>`;
+  const jobRows = ct.job_search_by_category.map((x) =>
+    `<tr><td>${esc(x.name)}</td><td>${x.applied}</td><td>${x.interview}</td></tr>`).join("")
+    || `<tr><td colspan="3" class="muted">이번 주 구직활동 기록이 없습니다.</td></tr>`;
+  const maxN = Math.max(1, ...ct.hire_timeline.map((t) => t.count));
+  const timeline = ct.hire_timeline.map((t) => `
+    <div class="fn-row"><span class="fn-label">${esc(t.month)}</span>
+      <span class="fn-bar" style="width:${Math.max(6, (t.count / maxN) * 160)}px"></span><span class="fn-n">${t.count}</span></div>`).join("")
+    || `<p class="muted small">최근 12개월 내 입사 기록이 없습니다.</p>`;
+  const retention = ct.post_care.retention.map((r) => `<span class="badge lg">${esc(r.status)} ${r.count}</span>`).join(" ")
+    || `<span class="muted small">해당 없음</span>`;
+  const notes = ct.recent_notes.map((n) => `
+    <li><span class="muted small">${esc((n.created_at || "").slice(0, 16).replace("T", " "))} · ${esc(n.student_code)} · ${n.author_role === "admin" ? "학과장" : "강사"}</span>
+      <div>${esc(n.note)}</div></li>`).join("") || `<li class="muted">최근 등록된 특이사항이 없습니다.</li>`;
+  const fu = ct.followup_due_soon.map((i) =>
+    `<li><b>${esc(i.student_code)}</b> ${esc(i.detail)} <span class="muted small">${esc(i.date || "")}</span></li>`).join("")
+    || `<li class="muted">임박한 사후관리가 없습니다.</li>`;
+
+  pane.innerHTML = `
+    <div class="card"><h1 style="margin:0 0 4px">종합관제판 <span class="muted small">주간 ${esc(ct.week_start)} ~ ${esc(ct.week_end)}</span></h1>
+      <p class="muted small">${esc(ct.scope_note)}</p>
+      <div class="grid kpis">
+        ${kpi("보고 대상", emp.target_count + "명")}
+        ${kpi("취업 확정(공식)", emp.employed_confirmed + "명")}
+        ${kpi("검증 대기", emp.employed_pending_verification + "명")}
+        ${kpi("취업률(" + esc(emp.denominator_label) + ")", pct(emp.employment_rate))}
+        ${kpi("이번 주 신규 입사", emp.employed_this_week + "명")}
+      </div>
+    </div>
+    <div class="cols2">
+      <div class="card"><h2>이번 주 구직활동 (직무별)</h2><table><tr><th>직무</th><th>지원</th><th>면접</th></tr>${jobRows}</table></div>
+      <div class="card"><h2>취업 시기 (최근 12개월)</h2><div class="funnel">${timeline}</div></div>
+    </div>
+    <div class="cols2">
+      <div class="card"><h2>취업 후 사후지도</h2>
+        <p class="small">검증 완료 ${ct.post_care.total_verified}명 · 고용보험 확인 ${ct.post_care.insurance_checked} / 미확인 ${ct.post_care.insurance_pending}
+          · 계약서 확인 ${ct.post_care.contract_checked} / 미확인 ${ct.post_care.contract_pending}</p>
+        <div>${retention}</div>
+      </div>
+      <div class="card"><h2>사후관리 임박</h2><ul class="log feed">${fu}</ul></div>
+    </div>
+    <div class="card"><h2>최근 특이사항</h2><ul class="log feed">${notes}</ul></div>`;
+}
+
+export async function paintEmployerDirectory(pane, cohort) {
+  pane.innerHTML = skeleton(4);
+  let ed;
+  try { ed = await getEmployerDirectory(null, null, cohort); }
+  catch (e) { return renderError(pane, e, () => paintEmployerDirectory(pane, cohort)); }
+  const rows = ed.rows.map((r) => `
+    <tr><td><b>${esc(r.student_code)}</b></td><td>${esc(r.company)}</td><td>${esc(r.position || "")}</td>
+      <td>${esc(r.employment_type || "")}</td><td>${esc(r.hire_date || "")}</td>
+      <td>${r.contract_checked ? "✔" : "–"}</td><td>${r.insurance_checked ? "✔" : "–"}</td>
+      <td>${esc(r.retention_status || "미확인")}</td><td>${esc(r.evidence_type || "")}</td></tr>`).join("")
+    || `<tr><td colspan="9" class="muted">검증된 취업자가 없습니다.</td></tr>`;
+  pane.innerHTML = `
+    <div class="card">
+      <h1 style="margin:0 0 4px">업체현황</h1>
+      <p class="muted small">관리자 검증을 마친 취업자 전원(인정 형태 무관) — 공식 취업률 집계와 범위가 다릅니다.</p>
+      <div class="scroll-x"><table class="tbl-cards">
+        <tr><th>번호</th><th>업체</th><th>직무</th><th>고용형태</th><th>입사일</th><th>계약서</th><th>보험</th><th>재직상태</th><th>증빙</th></tr>
+        ${rows}</table></div>
+    </div>`;
+}
+
+/* =====================================================================
+   0-1) 특이사항 (학과장·강사 입력, 센터는 관제판에서 열람만) — 학생 상세용
+   ===================================================================== */
+export async function renderMentorNotes(host, { studentId, canWrite }) {
+  const paint = async () => {
+    host.innerHTML = `<p class="muted small">불러오는 중…</p>`;
+    let rows;
+    try { rows = await listMentorNotes(studentId); }
+    catch (e) { host.innerHTML = `<p class="msg err">${esc(e.message)}</p>`; return; }
+    const list = rows.map((n) => `
+      <li data-id="${n.id}"><span class="muted small">${esc((n.created_at || "").slice(0, 16).replace("T", " "))}</span>
+        <div>${esc(n.note)}</div>${canWrite ? `<button class="ghost mn-del" type="button" data-id="${n.id}">삭제</button>` : ""}</li>`).join("")
+      || `<li class="muted">등록된 특이사항이 없습니다.</li>`;
+    host.innerHTML = `<ul class="log feed">${list}</ul>
+      ${canWrite ? `<div class="row"><input id="mn-text" placeholder="특이사항 메모 (실명·연락처 입력 금지)">
+        <button id="mn-add" type="button">등록</button><span id="mn-msg" class="msg"></span></div>` : ""}`;
+    if (canWrite) {
+      host.querySelector("#mn-add").onclick = async (e) => {
+        const t = host.querySelector("#mn-text"), m = host.querySelector("#mn-msg");
+        if (!t.value.trim()) return setMsg(m, "내용을 입력하세요", "err");
+        await withBusy(e.target, async () => {
+          try { await addMentorNote(studentId, t.value.trim()); toast("등록했어요."); paint(); }
+          catch (err) { setMsg(m, err.message, "err"); }
+        });
+      };
+      host.querySelectorAll(".mn-del").forEach((b) => (b.onclick = async () => {
+        const ok = await confirmDialog({ title: "특이사항을 삭제할까요?", okLabel: "삭제", danger: true });
+        if (!ok) return;
+        try { await deleteMentorNote(b.dataset.id); paint(); } catch (err) { toast(err.message, "err"); }
+      }));
+    }
+  };
+  await paint();
+}
+
+/* =====================================================================
+   0-2) 진행 요약 카드 — 추천 채용공고 · 최신 포트폴리오 평가 · 깃허브 링크
+   ===================================================================== */
+export async function renderProgressSummary(host, { studentId, student, canEditGithub }) {
+  host.innerHTML = `<p class="muted small">불러오는 중…</p>`;
+  let matches = [], reviews = [];
+  try { [matches, reviews] = await Promise.all([getTopMatches(studentId), listPortfolioReviews(studentId)]); }
+  catch (e) { host.innerHTML = `<p class="msg err">${esc(e.message)}</p>`; return; }
+  const latest = reviews[0];
+  const m3 = matches.slice(0, 3).map((m) =>
+    `<span class="grade ${GRADE_CLASS[m.grade] || ""}">${esc(m.grade)} ${Math.round(m.total)}</span> <span class="small">${esc(m.company || "")} · ${esc(m.title || "")}</span>`
+  ).join("<br>") || `<span class="muted small">추천 채용공고가 아직 없습니다.</span>`;
+  const latestBadge = latest
+    ? `<span class="grade ${latest.quality_total >= 80 ? "g-a" : latest.quality_total >= 60 ? "g-c" : "g-e"}">${Math.round(latest.quality_total)}</span> <span class="small">${esc(latest.title || "")}</span>`
+    : `<span class="muted small">평가 기록 없음</span>`;
+
+  host.innerHTML = `
+    <div class="row" style="align-items:flex-start;flex-wrap:wrap">
+      <div style="min-width:200px"><span class="muted small">추천 채용공고 상위</span><br>${m3}</div>
+      <div style="min-width:200px"><span class="muted small">최신 포트폴리오 평가</span><br>${latestBadge}</div>
+      <div style="flex:1;min-width:240px"><span class="muted small">포트폴리오 깃허브</span><br>
+        ${canEditGithub
+          ? `<input id="gh-url" value="${esc(student.github_url || "")}" placeholder="https://github.com/..." style="width:100%">`
+          : (student.github_url
+              ? `<a href="${esc(student.github_url)}" target="_blank" rel="noopener">${esc(student.github_url)}</a>`
+              : `<span class="muted small">등록되지 않음</span>`)}
+      </div>
+      ${canEditGithub ? `<span><button id="gh-save" class="ghost" type="button">저장</button> <span id="gh-msg" class="msg"></span></span>` : ""}
+    </div>`;
+  if (canEditGithub) {
+    host.querySelector("#gh-save").onclick = async (e) => {
+      const url = host.querySelector("#gh-url").value.trim();
+      const m = host.querySelector("#gh-msg");
+      if (url && !/^https?:\/\//.test(url)) { setMsg(m, "http(s):// 로 시작하는 주소를 입력하세요", "err"); return; }
+      await withBusy(e.target, async () => {
+        try { await setStudentGithubUrl(studentId, url || null); student.github_url = url; setMsg(m, "저장됨", "ok"); }
+        catch (err) { setMsg(m, err.message, "err"); }
+      });
+    };
+  }
 }

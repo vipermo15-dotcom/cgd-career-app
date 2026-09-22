@@ -6,6 +6,7 @@ import {
   listCompanies, saveCompany, deleteCompany, getConfig, setConfig,
   MATCH_WEIGHT_KEYS, READINESS_WEIGHT_KEYS,
 } from "../data.js";
+import { paintControlTower, paintEmployerDirectory } from "./ops.js";
 
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) =>
   ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -19,7 +20,7 @@ export function renderAdmin(el, { session }) {
       <button id="so" class="ghost">로그아웃</button>
     </header>
     <nav class="tabs with-icons" aria-label="관리자 메뉴">
-      ${tabBtn("overview", "개요", true)}${tabBtn("users", "회원")}${tabBtn("companies", "기업")}
+      ${tabBtn("control", "종합관제판", true)}${tabBtn("users", "회원")}${tabBtn("employer", "업체현황")}${tabBtn("companies", "기업")}
       ${tabBtn("taxonomy", "기준데이터")}${tabBtn("config", "설정")}${tabBtn("ai", "AI 로그")}
     </nav>
     <section id="pane">${skeleton(4)}</section>`;
@@ -28,26 +29,23 @@ export function renderAdmin(el, { session }) {
   const tabs = [...el.querySelectorAll(".tabs button")];
   const show = (n) => {
     markTab(tabs, n);
-    ({ overview: paintOverview, users: paintUsers, companies: paintCompanies,
-       taxonomy: paintTaxonomy, config: paintConfig, ai: paintAi }[n])(pane);
+    ({ control: () => paintControlTower(pane, null), users: paintUsers, employer: () => paintEmployerDirectory(pane, null),
+       companies: paintCompanies, taxonomy: paintTaxonomy, config: paintConfig, ai: paintAi }[n])(pane);
   };
   tabs.forEach((b) => (b.onclick = () => show(b.dataset.tab)));
-  show("overview");
+  show("control");
 }
 
-async function paintOverview(pane) {
+async function paintUsers(pane) {
   pane.innerHTML = skeleton(4);
-  let d;
-  try { d = await adminOverview(); }
-  catch (e) { return renderError(pane, e, () => paintOverview(pane)); }
+  let rows, d;
+  try { [rows, d] = await Promise.all([adminUsers(), adminOverview()]); }
+  catch (e) { return renderError(pane, e, () => paintUsers(pane)); }
   const c = d.counts;
   const kpi = (label, v) => `<div class="card kpi"><span>${label}</span><b>${v}</b></div>`;
   const dist = (o) => Object.entries(o || {}).map(([k, v]) => `<span class="badge lg">${esc(k)} ${v}</span>`).join(" ")
     || "<span class='muted small'>아직 없어요</span>";
-  const recent = (d.recent_activity || []).map((a) =>
-    `<li><span class="muted small">${esc((a.at || "").slice(0, 16).replace("T", " "))}</span><span>${esc(a.actor)} · ${esc(a.detail || a.action)}</span></li>`).join("")
-    || "<li class='muted'>아직 활동이 없어요</li>";
-  pane.innerHTML = `
+  const overviewHtml = `
     <div class="grid kpis">
       ${kpi("회원", c.users)}${kpi("기수", c.cohorts)}${kpi("학생", c.students)}
       ${kpi("공고", c.job_postings)}${kpi("지원", c.applications)}${kpi("취업", c.employment)}${kpi("AI 호출", c.ai_runs)}
@@ -55,18 +53,10 @@ async function paintOverview(pane) {
     <div class="cols2">
       <div class="card"><h2>역할 분포</h2><div>${dist(d.by_role)}</div></div>
       <div class="card"><h2>취업 고용형태</h2><div>${dist(d.employment_by_type)}</div></div>
-    </div>
-    <div class="card"><h2>최근 활동 (전체 기수)</h2><ul class="log feed">${recent}</ul></div>`;
-}
-
-async function paintUsers(pane) {
-  pane.innerHTML = skeleton(4);
-  let rows;
-  try { rows = await adminUsers(); }
-  catch (e) { return renderError(pane, e, () => paintUsers(pane)); }
+    </div>`;
   const roleOpt = (r) => ["", "student", "instructor", "viewer", "admin"]
     .map((v) => `<option value="${v}" ${v === (r || "") ? "selected" : ""}>${v || "(미지정)"}</option>`).join("");
-  pane.innerHTML = `
+  pane.innerHTML = overviewHtml + `
     <div class="card">
       <div class="row arow"><input id="u-q" type="search" placeholder="이메일로 검색" aria-label="회원 검색" style="max-width:320px">
         <span class="muted small" id="u-count">${rows.length}명</span></div>

@@ -1,7 +1,7 @@
 import { signOut } from "../auth.js";
-import { toast, confirmDialog, skeleton, renderError } from "../ui.js";
+import { toast, confirmDialog, skeleton, renderError, setMsg, withBusy } from "../ui.js";
 import {
-  getMyDossier, updateArtifact, uploadArtifactFile, signedUrl,
+  getMyDossier, updateArtifact, uploadArtifactFile, signedUrl, setMyGithubUrl,
   listApplications, addApplication, updateApplication, deleteApplication, getEmployment,
   getPreferences, savePreferences, listJobPostings, applyToPosting,
   getTopMatches, getGap, setPrefConditions,
@@ -137,6 +137,16 @@ async function paint(pane, studentId) {
     </div>
 
     <div class="card">
+      <h2>포트폴리오 깃허브</h2>
+      <div class="row">
+        <input id="gh-url" value="${esc(s.github_url || "")}" placeholder="https://github.com/내계정/포트폴리오" style="flex:1;min-width:220px">
+        <button id="gh-save" class="ghost" type="button">저장</button>
+        <span id="gh-msg" class="msg"></span>
+      </div>
+      <p class="muted small">담당 강사·관리자가 종합관제판·학생 상세에서 이 링크를 함께 볼 수 있습니다.</p>
+    </div>
+
+    <div class="card">
       <h2>내 면접 · 지원기업 자료</h2>
       <p class="muted small">면접을 볼 기업·직무를 등록하고, 면접 결과(합격·불합격)와 제출한 이력서·자소서·포트폴리오, 받은 피드백 자료를 올려 두세요.</p>
       <div id="my-interviews"></div>
@@ -199,6 +209,16 @@ async function paint(pane, studentId) {
   wireArtifacts(pane, s, studentId, () => paint(pane, studentId));
   wireApplications(pane, studentId, () => paint(pane, studentId));
   renderInterviews(pane.querySelector("#my-interviews"), { studentId, code: s.code });
+
+  pane.querySelector("#gh-save").onclick = async (e) => {
+    const url = pane.querySelector("#gh-url").value.trim();
+    const m = pane.querySelector("#gh-msg");
+    if (url && !/^https?:\/\//.test(url)) { setMsg(m, "http(s):// 로 시작하는 주소를 입력하세요", "err"); return; }
+    await withBusy(e.target, async () => {
+      try { await setMyGithubUrl(url || null); setMsg(m, "저장됨", "ok"); }
+      catch (err) { setMsg(m, err.message, "err"); }
+    });
+  };
 
   pane.querySelectorAll(".jp-apply").forEach((b) => {
     b.onclick = async () => {

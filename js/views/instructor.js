@@ -11,7 +11,7 @@ import {
   STAGES, STATUS, ARTIFACT_TYPES,
   APPLICATION_STATUS, JOB_CATEGORIES, EMPLOYMENT_TYPES, GRADE_CLASS,
 } from "../data.js";
-import { paintWeekly, paintFollowups, paintReport, renderStudentOps } from "./ops.js";
+import { paintWeekly, paintFollowups, paintReport, renderStudentOps, paintControlTower, paintEmployerDirectory, renderMentorNotes, renderProgressSummary } from "./ops.js";
 import { renderSkillBlock } from "../skillblock.js";
 import { renderCoach } from "../coach.js";
 import { renderPortfolioReview } from "../pfreview.js";
@@ -69,8 +69,8 @@ export async function renderInstructor(el, { session, profile }) {
     </header>
     <div id="cohortbar" class="cohortbar"></div>
     <nav class="tabs with-icons" aria-label="강사 메뉴">
-      ${tabBtn("summary", "현황", true)}${tabBtn("weekly", "주차현황")}${tabBtn("kpi", "실적")}${tabBtn("students", "학생")}
-      ${tabBtn("followup", "사후관리")}${tabBtn("report", "성과보고")}${tabBtn("postings", "공고")}${tabBtn("roster", "명단")}
+      ${tabBtn("summary", "현황", true)}${tabBtn("control", "종합관제판")}${tabBtn("weekly", "주차현황")}${tabBtn("employer", "업체현황")}
+      ${tabBtn("kpi", "실적")}${tabBtn("students", "학생")}${tabBtn("followup", "사후관리")}${tabBtn("report", "성과보고")}${tabBtn("postings", "공고")}${tabBtn("roster", "명단")}
     </nav>
     <section id="pane">${skeleton(4)}</section>`;
   el.querySelector("#so").onclick = signOut;
@@ -84,6 +84,8 @@ export async function renderInstructor(el, { session, profile }) {
     if (!cohort) return;
     markTab(tabs, name);
     if (name === "summary") paintSummary(pane, cohort);
+    if (name === "control") paintControlTower(pane, cohort);
+    if (name === "employer") paintEmployerDirectory(pane, cohort);
     if (name === "weekly") paintWeekly(pane, cohort);
     if (name === "followup") paintFollowups(pane, cohort);
     if (name === "report") paintReport(pane, cohort);
@@ -520,6 +522,12 @@ async function openDetail(host, id, refresh, opts = {}) {
       </div>
       <p class="muted small">${esc(s.note || "")}</p>
 
+      <h2>진행 요약</h2>
+      <div id="i-progress"></div>
+
+      <h2>특이사항 <span class="muted small">(강사·관리자만 입력, 센터는 종합관제판에서 열람)</span></h2>
+      <div id="i-notes"></div>
+
       <h2>희망 직무</h2>
       <div class="row">
         <label class="small">1 <select id="pf1" style="width:auto">${prefOpts(prefByRank[1])}</select></label>
@@ -611,6 +619,8 @@ async function openDetail(host, id, refresh, opts = {}) {
   host.querySelector("#dclose").onclick = () => (host.innerHTML = "");
   renderSkillBlock(host.querySelector("#i-skillblock"), id, { canVerify: true, canEditExperience: true });
   renderPortfolioReview(host.querySelector("#i-pfreviewbox"), id, { reviewerAs: "instructor" });
+  renderProgressSummary(host.querySelector("#i-progress"), { studentId: id, student: s, canEditGithub: true });
+  renderMentorNotes(host.querySelector("#i-notes"), { studentId: id, canWrite: true });
   renderStudentOps(host.querySelector("#i-ops"), {
     studentId: id, code: s.code, student: s, isAdmin: IS_ADMIN, onChange: refresh });
   renderCoach(host.querySelector("#i-coachbox"), id);
