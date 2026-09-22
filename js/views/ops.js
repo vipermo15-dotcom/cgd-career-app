@@ -469,8 +469,8 @@ export async function renderStudentOps(host, { studentId, code, student, isAdmin
    ===================================================================== */
 export async function paintControlTower(pane, cohort, { onNavigate } = {}) {
   pane.innerHTML = skeleton(4);
-  let ct;
-  try { ct = await getControlTower(cohort); }
+  let ct, tasks, dq;
+  try { [ct, tasks, dq] = await Promise.all([getControlTower(cohort), getTodayTasks(cohort), getDataQuality(cohort)]); }
   catch (e) { return renderError(pane, e, () => paintControlTower(pane, cohort)); }
   const emp = ct.employment;
   const kpi = (label, v, tab) => tab
@@ -493,6 +493,23 @@ export async function paintControlTower(pane, cohort, { onNavigate } = {}) {
     `<li class="clickable" data-nav="followup"><b>${esc(i.student_code)}</b> ${esc(i.detail)} <span class="muted small">${esc(i.date || "")}</span></li>`).join("")
     || `<li class="muted">임박한 사후관리가 없습니다.</li>`;
 
+  const TASK_LABEL = { interview_update: "면접 결과 갱신", application_update: "지원 상태 확인",
+    evidence_check: "취업 증빙 확인", followup_due: "사후관리 예정 확인", completion_pending: "수료 처리" };
+  const TASK_NAV = { interview_update: "students", application_update: "students",
+    evidence_check: "employer", followup_due: "followup", completion_pending: "students" };
+  const taskGroups = (tasks.groups || []).filter((g) => g.items.length).map((g) => `
+    <div><h3 class="small">${esc(TASK_LABEL[g.type] || g.type)} (${g.items.length})</h3>
+      <ul class="log feed">${g.items.map((i) => `
+        <li class="clickable" data-nav="${TASK_NAV[g.type] || "students"}" data-code="${esc(i.student_code)}">
+          <b>${esc(i.student_code)}</b> ${esc(i.detail)} <span class="muted small">${esc(i.date || "")}</span></li>`).join("")}
+      </ul></div>`).join("");
+
+  const DQ_BADGE = { ERROR: "err", WARN: "err", INFO: "muted" };
+  const dqItems = dq.items.map((i) => `
+    <li class="${DQ_BADGE[i.severity]} clickable" data-nav="students" data-code="${esc(i.student_codes[0] || "")}">
+      <b>[${i.severity}]</b> ${esc(i.label)} — ${i.count}건
+      ${i.student_codes.length ? `<span class="muted small">(${i.student_codes.map(esc).join(", ")})</span>` : ""}</li>`).join("");
+
   pane.innerHTML = `
     <div class="card"><h1 style="margin:0 0 4px">종합관제판 <span class="muted small">주간 ${esc(ct.week_start)} ~ ${esc(ct.week_end)}</span></h1>
       <p class="muted small">${esc(ct.scope_note)}</p>
@@ -504,6 +521,12 @@ export async function paintControlTower(pane, cohort, { onNavigate } = {}) {
         ${kpi("이번 주 신규 입사", emp.employed_this_week + "명", "employer")}
       </div>
       <p class="muted small">카드를 클릭하면 해당 메뉴로 이동합니다.</p>
+    </div>
+    <div class="card"><h2>오늘의 업무 (${tasks.total}건 · 기한순, 순위 없음)</h2>
+      ${taskGroups || `<p class="muted small">오늘 처리할 업무가 없습니다.</p>`}
+    </div>
+    <div class="card"><h2>데이터 검증 ${dq.needs_supplement ? '<span class="badge">자료보완 필요</span>' : '<span class="badge">이상 없음</span>'}</h2>
+      <ul>${dqItems || "<li class='muted'>검증 항목 없음</li>"}</ul>
     </div>
     <div class="cols2">
       <div class="card"><h2>이번 주 구직활동 (직무별)</h2><table><tr><th>직무</th><th>지원</th><th>면접</th></tr>${jobRows}</table></div>
