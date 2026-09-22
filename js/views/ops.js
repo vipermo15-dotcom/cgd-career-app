@@ -1,5 +1,6 @@
 // STEP 13 운영 화면: 주차별 현황 · 사후관리/90일 성과 · 성과보고서 · 교육생별 면접·자료·취업후관리
 // 원칙: 수치는 cgd_* RPC 원본만 사용. 점수·순위·취업 가능성 표시 없음. 취업 확정은 관리자 검증만.
+import { toast, confirmDialog, skeleton, renderError } from "../ui.js";
 import {
   getWeeklyBoard, saveWeeklyGuidance, mondayOf, getNameMap, whoLabel,
   getFinalReport, getStudentReport, getDataQuality, getTodayTasks, ensureFollowups,
@@ -31,11 +32,11 @@ function download(name, text, type) {
 export async function paintWeekly(pane, cohort, { readOnly = false } = {}) {
   let week = mondayOf();
   const load = async () => {
-    pane.innerHTML = `<div class="card"><p class="muted">불러오는 중…</p></div>`;
+    pane.innerHTML = `<div class="card">${skeleton(4)}</div>`;
     let w;
     let names = {};
     try { [w, names] = await Promise.all([getWeeklyBoard(week, cohort), getNameMap(cohort)]); }
-    catch (e) { pane.innerHTML = `<div class="card"><p class="msg err">${esc(e.message)}</p></div>`; return; }
+    catch (e) { return renderError(pane, e, load); }
     week = w.week_start;
     const rows = w.rows.map((r) => {
       const li = r.latest_interview, em = r.employment, g = r.guidance;
@@ -43,13 +44,13 @@ export async function paintWeekly(pane, cohort, { readOnly = false } = {}) {
         (em.verified ? ` · 계약서 ${em.contract_checked ? "✔" : "–"} · 보험 ${em.insurance_checked ? "✔" : "–"}` +
           (em.retention_status ? ` · ${esc(em.retention_status)}` : "") : "") : "–";
       return `<tr data-code="${esc(r.code)}">
-        <td><b>${esc(names[r.code] || r.code)}</b>${names[r.code] ? ` <span class="muted small">${esc(r.code)}</span>` : ""}</td><td>${esc(r.stage)}</td>
-        <td>${esc(OUTCOME_LABEL[r.outcome_status] || r.outcome_status)}</td>
-        <td>${r.applications_week}</td><td>${r.interviews_week}</td><td>${r.docs_week}</td>
-        <td class="small">${li ? esc(li.company) + " · " + esc(INTERVIEW_RESULT[li.result] || li.result) : "–"}</td>
-        <td class="small">${emTxt}</td>
-        <td class="small">${g?.guided ? "✅ " + esc(g.topic || "지도 완료") : "⬜ 미기록"}${g?.next_action ? `<br><span class="muted">→ ${esc(g.next_action)}${g.next_due ? " (" + esc(g.next_due) + ")" : ""}</span>` : ""}</td>
-        <td>${readOnly ? "" : `<button class="ghost w-edit" data-code="${esc(r.code)}">기록</button>`}</td></tr>`;
+        <td class="tc-title"><b>${esc(names[r.code] || r.code)}</b>${names[r.code] ? ` <span class="muted small">${esc(r.code)}</span>` : ""}</td><td data-label="단계">${esc(r.stage)}</td>
+        <td data-label="성과 상태">${esc(OUTCOME_LABEL[r.outcome_status] || r.outcome_status)}</td>
+        <td data-label="지원">${r.applications_week}</td><td data-label="면접">${r.interviews_week}</td><td data-label="자료">${r.docs_week}</td>
+        <td class="small tc-wide" data-label="최근 면접">${li ? esc(li.company) + " · " + esc(INTERVIEW_RESULT[li.result] || li.result) : "–"}</td>
+        <td class="small tc-wide" data-label="취업·사후">${emTxt}</td>
+        <td class="small tc-wide" data-label="진로지도">${g?.guided ? "✅ " + esc(g.topic || "지도 완료") : "⬜ 미기록"}${g?.next_action ? `<br><span class="muted">→ ${esc(g.next_action)}${g.next_due ? " (" + esc(g.next_due) + ")" : ""}</span>` : ""}</td>
+        <td class="tc-act">${readOnly ? "" : `<button class="ghost w-edit" data-code="${esc(r.code)}">기록</button>`}</td></tr>`;
     }).join("");
     pane.innerHTML = `
       <div class="card">
@@ -62,7 +63,7 @@ export async function paintWeekly(pane, cohort, { readOnly = false } = {}) {
           </span>
         </div>
         <p class="muted small">진로지도 기록 <b>${w.guided_count} / ${w.total}명</b> · 번호순 표시 (점수·순위 없음)</p>
-        <div class="scroll-x"><table class="rowlink">
+        <div class="scroll-x"><table class="rowlink tbl-cards">
           <tr><th>이름</th><th>단계</th><th>성과 상태</th><th>지원</th><th>면접</th><th>자료</th><th>최근 면접</th><th>취업·사후</th><th>진로지도</th><th></th></tr>
           ${rows || `<tr><td colspan="10" class="muted">대상 학생이 없습니다.</td></tr>`}
         </table></div>
@@ -118,7 +119,7 @@ async function guidanceForm(host, w, code, done) {
    2) 사후관리 + 90일 성과
    ===================================================================== */
 export async function paintFollowups(pane, cohort) {
-  pane.innerHTML = `<div class="card"><p class="muted">불러오는 중…</p></div>`;
+  pane.innerHTML = `<div class="card">${skeleton(4)}</div>`;
   let list, rep, names = {};
   try {
     names = await getNameMap(cohort);
@@ -126,20 +127,20 @@ export async function paintFollowups(pane, cohort) {
     const ref = probe.cohort.outcome_ref_date;
     const basis = probe.cohort.outcome_ref_reached ? ref : today();
     [list, rep] = await Promise.all([listFollowups(cohort), getFinalReport("2000-01-01", basis, cohort)]);
-  } catch (e) { pane.innerHTML = `<div class="card"><p class="msg err">${esc(e.message)}</p></div>`; return; }
+  } catch (e) { return renderError(pane, e, () => paintFollowups(pane, cohort)); }
   const k = rep.kpi, c = rep.cohort;
   const provisional = !c.outcome_ref_reached;
   const ms = rep.followup_by_milestone.map((m) =>
     `<tr><td>${m.milestone_days}일</td><td>${m.total}</td><td>${m.completed}</td><td>${m.scheduled}</td><td>${m.unreachable}</td></tr>`).join("");
   const rows = list.map((f) => `
     <tr data-id="${f.id}">
-      <td><b>${esc(names[f.students.code] || f.students.code)}</b></td><td>${f.milestone_days}일</td><td>${esc(f.due_date)}</td>
-      <td><select class="f-status">${opts(FOLLOWUP_STATUS, f.status)}</select></td>
-      <td><select class="f-state"><option value="">–</option>${RETENTION.concat(["미취업"]).map((v) =>
+      <td class="tc-title"><b>${esc(names[f.students.code] || f.students.code)}</b></td><td data-label="시점">${f.milestone_days}일</td><td data-label="예정일">${esc(f.due_date)}</td>
+      <td data-label="상태"><select class="f-status">${opts(FOLLOWUP_STATUS, f.status)}</select></td>
+      <td data-label="재직 상태"><select class="f-state"><option value="">–</option>${RETENTION.concat(["미취업"]).map((v) =>
         `<option ${v === f.employment_state ? "selected" : ""}>${v}</option>`).join("")}</select></td>
-      <td><input class="f-date" type="date" value="${esc(f.actual_date || "")}" style="width:auto"></td>
-      <td><input class="f-note" value="${esc(f.note || "")}" placeholder="메모(실명 금지)"></td>
-      <td><button class="ghost f-save">저장</button> <span class="msg small"></span></td></tr>`).join("");
+      <td data-label="처리일"><input class="f-date" type="date" value="${esc(f.actual_date || "")}" style="width:auto"></td>
+      <td data-label="메모"><input class="f-note" value="${esc(f.note || "")}" placeholder="메모(실명 금지)"></td>
+      <td class="tc-act"><button class="ghost f-save">저장</button> <span class="msg small"></span></td></tr>`).join("");
   pane.innerHTML = `
     <div class="card">
       <h1>90일 성과 ${provisional ? '<span class="badge">잠정 · 기준일 미도래</span>' : ""}</h1>
@@ -157,7 +158,7 @@ export async function paintFollowups(pane, cohort) {
       <h2>사후관리 (수료일 기준 30일·90일)</h2>
       <div class="row"><button id="fu-gen">일정 생성 (30·90일)</button><span id="fu-msg" class="msg"></span></div>
       <table><tr><th>시점</th><th>전체</th><th>완료</th><th>예정</th><th>연락불가</th></tr>${ms || `<tr><td colspan="5" class="muted">일정이 없습니다. 「일정 생성」을 누르세요.</td></tr>`}</table>
-      <div class="scroll-x"><table>
+      <div class="scroll-x"><table class="tbl-cards">
         <tr><th>이름</th><th>시점</th><th>예정일</th><th>상태</th><th>재직 상태</th><th>처리일</th><th>메모</th><th></th></tr>
         ${rows}</table></div>
     </div>`;
@@ -242,12 +243,12 @@ export async function paintReport(pane, cohort) {
   const cats = (r) => r.employment_by_category.length
     ? `<table><tr><th>취업 직무 분야</th><th>인원</th></tr>${r.employment_by_category.map((c) => `<tr><td>${esc(c.name)}</td><td>${c.count}</td></tr>`).join("")}</table>` : "";
   const defs = (r) => `<div class="card"><h2>산출 기준</h2><ol class="small">${Object.values(r.definitions).map((d) => `<li>${esc(d)}</li>`).join("")}</ol></div>`;
-  const studentTable = (s) => `<div class="card"><h2>학생별 명세 (번호 기준)</h2><div class="scroll-x"><table>
+  const studentTable = (s) => `<div class="card"><h2>학생별 명세 (번호 기준)</h2><div class="scroll-x"><table class="tbl-cards">
     <tr><th>번호</th><th>단계</th><th>수료</th><th>성과</th><th>지원</th><th>면접</th><th>취업(검증)</th><th>보고</th></tr>
-    ${s.rows.map((r) => `<tr><td><b>${esc(r.code)}</b></td><td>${esc(r.stage)}</td><td>${esc(r.completion_status)}</td>
-      <td>${esc(OUTCOME_LABEL[r.outcome_status] || r.outcome_status)}</td><td>${r.application_count}</td><td>${r.interview_count}</td>
-      <td>${r.employment ? (r.employment.verified ? "✅ " : "⏳ ") + esc(r.employment.company || "") : "–"}</td>
-      <td>${r.report_included ? "포함" : "제외: " + esc(r.report_exclude_reason || "")}</td></tr>`).join("")}</table></div></div>`;
+    ${s.rows.map((r) => `<tr><td class="tc-title"><b>${esc(r.code)}</b></td><td data-label="단계">${esc(r.stage)}</td><td data-label="수료">${esc(r.completion_status)}</td>
+      <td data-label="성과">${esc(OUTCOME_LABEL[r.outcome_status] || r.outcome_status)}</td><td data-label="지원">${r.application_count}</td><td data-label="면접">${r.interview_count}</td>
+      <td class="tc-wide" data-label="취업(검증)">${r.employment ? (r.employment.verified ? "✅ " : "⏳ ") + esc(r.employment.company || "") : "–"}</td>
+      <td class="tc-wide" data-label="보고">${r.report_included ? "포함" : "제외: " + esc(r.report_exclude_reason || "")}</td></tr>`).join("")}</table></div></div>`;
 
   const run = async (kind) => {
     const [from, to] = range();
@@ -298,10 +299,10 @@ export async function paintReport(pane, cohort) {
    ===================================================================== */
 export async function renderInterviews(host, { studentId, code }) {
   const paint = async () => {
-    host.innerHTML = `<p class="muted small">불러오는 중…</p>`;
+    host.innerHTML = skeleton(2);
     let iv;
     try { iv = await listInterviews(studentId); }
-    catch (e) { host.innerHTML = `<p class="msg err">${esc(e.message)}</p>`; return; }
+    catch (e) { return renderError(host, e, paint); }
     const ivHtml = iv.map((i) => `
       <div class="artcard" data-iv="${i.id}">
         <div class="arthead"><b>${esc(i.company)}</b> <span class="muted small">${esc(i.position || "")} · ${i.round}차 · ${esc(i.interview_date || "일자 미정")}</span>
@@ -346,8 +347,12 @@ export async function renderInterviews(host, { studentId, code }) {
         catch (e) { say(m, false, e.message); }
       };
       card.querySelector(".i-del").onclick = async () => {
-        if (!confirm("이 면접 기록과 첨부 자료 정보를 삭제할까요?")) return;
-        try { await deleteInterview(id); paint(); } catch (e) { say(m, false, e.message); }
+        const ok = await confirmDialog({
+          title: "이 면접 기록을 삭제할까요?", body: "첨부 자료 정보도 함께 삭제되며 되돌릴 수 없어요.",
+          okLabel: "삭제", danger: true,
+        });
+        if (!ok) return;
+        try { await deleteInterview(id); toast("삭제했어요."); paint(); } catch (e) { say(m, false, e.message); }
       };
       card.querySelector(".d-up").onclick = async (e) => {
         const f = card.querySelector(".d-file").files[0];
@@ -362,8 +367,11 @@ export async function renderInterviews(host, { studentId, code }) {
       }));
       card.querySelectorAll(".d-del").forEach((a) => (a.onclick = async (ev) => {
         ev.preventDefault();
-        if (!confirm("첨부 자료를 삭제할까요?")) return;
-        try { await deleteInterviewDoc({ id: a.dataset.id, storage_path: a.dataset.path }); paint(); }
+        const ok = await confirmDialog({
+          title: "첨부 자료를 삭제할까요?", body: "삭제하면 되돌릴 수 없어요.", okLabel: "삭제", danger: true,
+        });
+        if (!ok) return;
+        try { await deleteInterviewDoc({ id: a.dataset.id, storage_path: a.dataset.path }); toast("삭제했어요."); paint(); }
         catch (err) { say(m, false, err.message); }
       }));
     });

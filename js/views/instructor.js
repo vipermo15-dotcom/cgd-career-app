@@ -1,4 +1,5 @@
 import { signOut } from "../auth.js";
+import { toast, confirmDialog, skeleton, renderError, tabBtn, markTab } from "../ui.js";
 import { DEFAULT_COHORT_ID } from "../config.js";
 import {
   getDashboard, listStudents, getStudentDetail, updateStudent,
@@ -67,17 +68,11 @@ export async function renderInstructor(el, { session, profile }) {
       <button id="so" class="ghost">로그아웃</button>
     </header>
     <div id="cohortbar" class="cohortbar"></div>
-    <nav class="tabs">
-      <button data-tab="summary" class="on">현황</button>
-      <button data-tab="weekly">주차현황</button>
-      <button data-tab="kpi">실적</button>
-      <button data-tab="students">학생</button>
-      <button data-tab="followup">사후관리</button>
-      <button data-tab="report">성과보고</button>
-      <button data-tab="postings">공고</button>
-      <button data-tab="roster">명단</button>
+    <nav class="tabs with-icons" aria-label="강사 메뉴">
+      ${tabBtn("summary", "현황", true)}${tabBtn("weekly", "주차현황")}${tabBtn("kpi", "실적")}${tabBtn("students", "학생")}
+      ${tabBtn("followup", "사후관리")}${tabBtn("report", "성과보고")}${tabBtn("postings", "공고")}${tabBtn("roster", "명단")}
     </nav>
-    <section id="pane"><p class="muted">불러오는 중…</p></section>`;
+    <section id="pane">${skeleton(4)}</section>`;
   el.querySelector("#so").onclick = signOut;
 
   const pane = el.querySelector("#pane");
@@ -87,7 +82,7 @@ export async function renderInstructor(el, { session, profile }) {
 
   const show = (name) => {
     if (!cohort) return;
-    tabs.forEach((b) => b.classList.toggle("on", b.dataset.tab === name));
+    markTab(tabs, name);
     if (name === "summary") paintSummary(pane, cohort);
     if (name === "weekly") paintWeekly(pane, cohort);
     if (name === "followup") paintFollowups(pane, cohort);
@@ -170,10 +165,10 @@ async function cohortForm(bar, done) {
 
 /* ---------- 현황 ---------- */
 async function paintSummary(pane, cohort) {
-  pane.innerHTML = `<p class="muted">불러오는 중…</p>`;
+  pane.innerHTML = skeleton(4);
   let d;
   try { d = await getDashboard(cohort); }
-  catch (e) { pane.innerHTML = `<div class="card err">현황 로드 실패: ${esc(e.message)}</div>`; return; }
+  catch (e) { return renderError(pane, e, () => paintSummary(pane, cohort)); }
 
   const dist = (obj, map) => Object.entries(obj || {})
     .map(([k, v]) => `<span class="badge">${esc(map ? (map[k] || k) : k)} ${v}</span>`).join(" ");
@@ -210,10 +205,10 @@ async function paintSummary(pane, cohort) {
 
 /* ---------- 실적 (지원 퍼널 + KPI) ---------- */
 async function paintKPI(pane, cohort) {
-  pane.innerHTML = `<p class="muted">불러오는 중…</p>`;
+  pane.innerHTML = skeleton(4);
   let k;
   try { k = await getKPI(cohort); }
-  catch (e) { pane.innerHTML = `<div class="card err">실적 로드 실패: ${esc(e.message)}</div>`; return; }
+  catch (e) { return renderError(pane, e, () => paintKPI(pane, cohort)); }
 
   const f = k.funnel, r = k.rates;
   const steps = [
@@ -267,19 +262,19 @@ const dState = (deadline) => {
 };
 
 async function paintPostings(pane) {
-  pane.innerHTML = `<p class="muted">불러오는 중…</p>`;
+  pane.innerHTML = skeleton(4);
   let rows;
   try { rows = await listJobPostings(); }
-  catch (e) { pane.innerHTML = `<div class="card err">${esc(e.message)}</div>`; return; }
+  catch (e) { return renderError(pane, e, () => paintPostings(pane)); }
 
   const tr = rows.map((p) => `
     <tr data-pid="${p.id}">
-      <td>${esc(p.company)}</td>
-      <td>${esc(p.title)}</td>
-      <td>${esc(JOB_CATEGORIES[p.job_category] || p.job_category || "")}</td>
-      <td>${esc(p.deadline || "")} <span class="muted small">${dState(p.deadline)}</span></td>
-      <td>${esc(p.status)}</td>
-      <td><button class="pe ghost" type="button">편집</button>
+      <td class="tc-title">${esc(p.company)}</td>
+      <td class="tc-wide" data-label="공고명">${esc(p.title)}</td>
+      <td data-label="분류">${esc(JOB_CATEGORIES[p.job_category] || p.job_category || "") || "—"}</td>
+      <td data-label="마감">${esc(p.deadline || "") || "—"} <span class="muted small">${dState(p.deadline)}</span></td>
+      <td data-label="상태">${esc(p.status)}</td>
+      <td class="tc-act"><button class="pe ghost" type="button">편집</button>
           <button class="pd ghost" type="button">삭제</button></td>
     </tr>`).join("") || `<tr><td colspan="6" class="muted">공고 없음</td></tr>`;
 
@@ -287,7 +282,7 @@ async function paintPostings(pane) {
     <div class="card">
       <div class="dhead"><h2>채용공고 (${rows.length})</h2>
         <button id="p-new" class="ghost">+ 공고 추가</button></div>
-      <div class="scroll-x"><table class="rowlink">
+      <div class="scroll-x"><table class="rowlink tbl-cards">
         <tr><th>기업</th><th>공고명</th><th>분류</th><th>마감</th><th>상태</th><th></th></tr>${tr}
       </table></div>
     </div>
@@ -298,9 +293,13 @@ async function paintPostings(pane) {
     const p = rows.find((x) => x.id === row.dataset.pid);
     row.querySelector(".pe").onclick = () => postingForm(pane.querySelector("#p-form"), p, () => paintPostings(pane));
     row.querySelector(".pd").onclick = async () => {
-      if (!confirm(`"${p.company} · ${p.title}" 공고를 삭제할까요?`)) return;
-      await deleteJobPosting(p.id);
-      paintPostings(pane);
+      const ok = await confirmDialog({
+        title: `'${p.company} · ${p.title}' 공고를 삭제할까요?`,
+        body: "삭제하면 되돌릴 수 없어요.", okLabel: "삭제", danger: true,
+      });
+      if (!ok) return;
+      try { await deleteJobPosting(p.id); toast("삭제했어요."); paintPostings(pane); }
+      catch (err) { toast(err.message, "err"); }
     };
   });
 }
@@ -420,10 +419,10 @@ function nextAction(s) {
 
 /* ---------- 학생 목록 + 상세 ---------- */
 async function paintStudents(pane, cohort) {
-  pane.innerHTML = `<p class="muted">불러오는 중…</p>`;
+  pane.innerHTML = skeleton(4);
   let rows;
   try { rows = await listStudents(cohort); }
-  catch (e) { pane.innerHTML = `<div class="card err">${esc(e.message)}</div>`; return; }
+  catch (e) { return renderError(pane, e, () => paintStudents(pane, cohort)); }
 
   const artCell = (arr) => ARTIFACT_TYPES.map((t) => {
     const hit = (arr || []).find((a) => a.type === t);
@@ -438,12 +437,12 @@ async function paintStudents(pane, cohort) {
     const hot = r.status === "delayed" || r.status === "data_mismatch";
     return `
     <tr data-id="${r.id}" class="${hot ? "warn" : ""}">
-      <td><b>${esc(r.display_name || r.code)}</b>${r.display_name ? ` <span class="muted small">${esc(r.code)}</span>` : ""}</td>
-      <td>${esc(r.track || "")}</td>
-      <td>${esc(r.stage)}</td>
-      <td>${esc(STATUS[r.status] || r.status)}</td>
-      <td class="small">${artCell(r.artifacts)}</td>
-      <td class="small">${esc(na.label)}${na.trig ? ` <span class="muted">${esc(na.trig)}</span>` : ""}</td>
+      <td class="tc-title"><b>${esc(r.display_name || r.code)}</b>${r.display_name ? ` <span class="muted small">${esc(r.code)}</span>` : ""}</td>
+      <td data-label="트랙">${esc(r.track || "") || "—"}</td>
+      <td data-label="단계">${esc(r.stage)}</td>
+      <td data-label="상태">${esc(STATUS[r.status] || r.status)}</td>
+      <td class="small" data-label="아티팩트 (이력·자소·PDF·랜딩·피그마)">${artCell(r.artifacts)}</td>
+      <td class="small tc-wide" data-label="다음 액션">${esc(na.label)}${na.trig ? ` <span class="muted">${esc(na.trig)}</span>` : ""}</td>
     </tr>`;
   }).join("");
 
@@ -456,7 +455,7 @@ async function paintStudents(pane, cohort) {
 
   pane.innerHTML = `
     <div class="card"><h2>확인 필요 (${todo.length}명 · 번호순)</h2><ul class="gates">${todoList}</ul></div>
-    <div class="card"><div class="scroll-x"><table class="rowlink">
+    <div class="card"><div class="scroll-x"><table class="rowlink tbl-cards">
       <tr><th>이름</th><th>트랙</th><th>단계</th><th>상태</th>
           <th class="small">이력·자소·PDF·랜딩·피그마</th><th>다음 액션</th></tr>
       ${tr}
@@ -464,7 +463,7 @@ async function paintStudents(pane, cohort) {
     <div id="detail"></div>`;
 
   pane.querySelectorAll("tr[data-id]").forEach((row) => {
-    row.onclick = () => openDetail(pane.querySelector("#detail"), row.dataset.id, () => paintStudents(pane, cohort));
+    row.onclick = () => openDetail(pane.querySelector("#detail"), row.dataset.id, () => paintStudents(pane, cohort), { scroll: true });
   });
 }
 
@@ -474,14 +473,14 @@ const catOpts = (sel) => `<option value="">직무-</option>` +
 const appStatusOpts = (sel) => Object.entries(APPLICATION_STATUS).map(([k, v]) =>
   `<option value="${k}" ${k === sel ? "selected" : ""}>${v}</option>`).join("");
 
-async function openDetail(host, id, refresh) {
-  host.innerHTML = `<div class="card"><p class="muted">불러오는 중…</p></div>`;
+async function openDetail(host, id, refresh, opts = {}) {
+  host.innerHTML = `<div class="card">${skeleton(5)}</div>`;
   let d, apps, emp, prefs, matches;
   try {
     [d, apps, emp, prefs, matches] = await Promise.all([
       getStudentDetail(id), listApplications(id), getEmployment(id), getPreferences(id), getTopMatches(id),
     ]);
-  } catch (e) { host.innerHTML = `<div class="card err">${esc(e.message)}</div>`; return; }
+  } catch (e) { return renderError(host, e, () => openDetail(host, id, refresh, opts)); }
   const s = d.student;
   const prefByRank = {}; (prefs || []).forEach((p) => (prefByRank[p.rank] = p.category_code));
   const prefOpts = (sel) => `<option value="">(없음)</option>` +
@@ -494,11 +493,11 @@ async function openDetail(host, id, refresh) {
   const artList = (s.artifacts || []).sort((a, b) =>
     ARTIFACT_TYPES.indexOf(a.type) - ARTIFACT_TYPES.indexOf(b.type)).map((a) => `
     <tr data-art="${a.id}">
-      <td>${esc(a.type)}</td>
-      <td><select class="a-status">
+      <td class="tc-title">${esc(a.type)}</td>
+      <td data-label="상태"><select class="a-status">
         ${["미확인", "진행", "완료"].map((v) => `<option ${v === a.status ? "selected" : ""}>${v}</option>`).join("")}
       </select></td>
-      <td><input class="a-url" value="${esc(a.external_url || "")}" placeholder="링크(랜딩·피그마)"></td>
+      <td data-label="링크"><input class="a-url" value="${esc(a.external_url || "")}" placeholder="링크(랜딩·피그마)"></td>
     </tr>`).join("");
   const fbList = d.feedback.map((f) => `
     <li><b>${esc(f.author)}</b> <span class="muted small">${esc(f.stage || "")} · ${esc(f.created_at?.slice(0, 10))}</span>
@@ -531,7 +530,7 @@ async function openDetail(host, id, refresh) {
       </div>
 
       <h2>아티팩트</h2>
-      <div class="scroll-x"><table>
+      <div class="scroll-x"><table class="tbl-cards">
         <tr><th>종류</th><th>상태</th><th>링크</th></tr>${artList}
       </table></div>
       <button id="a-save" class="ghost">아티팩트 저장</button>
@@ -540,14 +539,14 @@ async function openDetail(host, id, refresh) {
       <div id="i-skillblock"></div>
 
       <h2>매칭 · GAP (${(matches || []).length})</h2>
-      <div class="scroll-x"><table>
+      <div class="scroll-x"><table class="tbl-cards">
         <tr><th>등급</th><th>기업</th><th>공고명</th><th></th></tr>
         ${(matches || []).slice(0, 6).map((m) => `
           <tr data-mpid="${m.posting_id}">
-            <td><span class="grade ${GRADE_CLASS[m.grade] || ""}">${m.grade} ${Math.round(m.total)}</span>
+            <td class="tc-title"><span class="grade ${GRADE_CLASS[m.grade] || ""}">${m.grade} ${Math.round(m.total)}</span>
                 <span class="muted small">${esc(m.grade_label)}</span></td>
-            <td>${esc(m.company)}</td><td>${esc(m.title)}</td>
-            <td><button class="im-gap ghost" type="button">GAP</button></td>
+            <td data-label="기업">${esc(m.company)}</td><td class="tc-wide" data-label="공고명">${esc(m.title)}</td>
+            <td class="tc-act"><button class="im-gap ghost" type="button">GAP</button></td>
           </tr>`).join("") || `<tr><td colspan="4" class="muted">ACTIVE 공고 없음</td></tr>`}
       </table></div>
       <div id="i-gapbox"></div>
@@ -557,16 +556,16 @@ async function openDetail(host, id, refresh) {
       <div id="i-coachbox"></div>
 
       <h2>지원 현황 (${apps.length})</h2>
-      <div class="scroll-x"><table>
+      <div class="scroll-x"><table class="tbl-cards">
         <tr><th>회사</th><th>직무명</th><th>분류</th><th>상태</th><th>지원일</th><th></th></tr>
         ${apps.map((a) => `
           <tr data-app="${a.id}">
-            <td>${esc(a.company)}</td>
-            <td>${esc(a.position || "")}</td>
-            <td><select class="ap-cat">${catOpts(a.job_category)}</select></td>
-            <td><select class="ap-status">${appStatusOpts(a.status)}</select></td>
-            <td><input class="ap-date" type="date" value="${esc(a.applied_at || "")}"></td>
-            <td><button class="ap-del ghost" type="button">삭제</button></td>
+            <td class="tc-title">${esc(a.company)}</td>
+            <td data-label="직무명">${esc(a.position || "") || "—"}</td>
+            <td data-label="분류"><select class="ap-cat">${catOpts(a.job_category)}</select></td>
+            <td data-label="상태"><select class="ap-status">${appStatusOpts(a.status)}</select></td>
+            <td data-label="지원일"><input class="ap-date" type="date" value="${esc(a.applied_at || "")}"></td>
+            <td class="tc-act"><button class="ap-del ghost" type="button">삭제</button></td>
           </tr>`).join("") || `<tr><td colspan="6" class="muted">지원 내역 없음</td></tr>`}
       </table></div>
       <button id="ap-save" class="ghost">지원 현황 저장</button>
@@ -607,6 +606,8 @@ async function openDetail(host, id, refresh) {
       <h2>진행 이력</h2><ul class="log">${logList}</ul>
     </div>`;
 
+  // 목록에서 학생을 눌러 열었을 때만, 내용이 그려진 뒤 상세 위치로 화면을 옮긴다 (저장·삭제 후 다시 그릴 때는 이동하지 않음)
+  if (opts.scroll) host.scrollIntoView?.({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
   host.querySelector("#dclose").onclick = () => (host.innerHTML = "");
   renderSkillBlock(host.querySelector("#i-skillblock"), id, { canVerify: true, canEditExperience: true });
   renderPortfolioReview(host.querySelector("#i-pfreviewbox"), id, { reviewerAs: "instructor" });
@@ -704,9 +705,12 @@ async function openDetail(host, id, refresh) {
   };
   host.querySelectorAll(".ap-del").forEach((b) => {
     b.onclick = async () => {
-      if (!confirm("이 지원 건을 삭제할까요?")) return;
-      await deleteApplication(b.closest("tr").dataset.app);
-      openDetail(host, id, refresh);
+      const ok = await confirmDialog({
+        title: "이 지원 건을 삭제할까요?", body: "삭제하면 되돌릴 수 없어요.", okLabel: "삭제", danger: true,
+      });
+      if (!ok) return;
+      try { await deleteApplication(b.closest("tr").dataset.app); toast("삭제했어요."); openDetail(host, id, refresh); }
+      catch (err) { toast(err.message, "err"); }
     };
   });
   host.querySelector("#na-add").onclick = async (e) => {

@@ -1,4 +1,5 @@
 // 포트폴리오 평가(품질 점수) 블록 — 강사·학생 공용.
+import { toast, confirmDialog } from "./ui.js";
 import {
   listPortfolioReviews, savePortfolioReview, deletePortfolioReview, analyzePortfolio,
   PF_COMPONENTS,
@@ -81,9 +82,12 @@ export async function renderPortfolioReview(host, studentId, opts = {}) {
   };
   host.querySelectorAll(".pr-del").forEach((b) => {
     b.onclick = async () => {
-      if (!confirm("이 평가를 삭제할까요?")) return;
-      await deletePortfolioReview(b.closest("[data-rid]").dataset.rid);
-      refresh();
+      const ok = await confirmDialog({
+        title: "이 평가를 삭제할까요?", body: "삭제하면 되돌릴 수 없어요.", okLabel: "삭제", danger: true,
+      });
+      if (!ok) return;
+      try { await deletePortfolioReview(b.closest("[data-rid]").dataset.rid); toast("삭제했어요."); refresh(); }
+      catch (err) { toast(err.message, "err"); }
     };
   });
 }

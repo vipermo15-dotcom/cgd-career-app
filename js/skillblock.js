@@ -36,13 +36,13 @@ export async function renderSkillBlock(host, studentId, opts = {}) {
   const rowsHtml = (items, ref, key) => items.map((it) => {
     const name = (ref.find((r) => r.id === it[key]) || {}).name || it[key];
     return `<tr data-row="${it.id}" data-kind="${key}" data-kid="${esc(it[key])}">
-      <td>${esc(name)}</td>
-      <td><select class="sb-lv">${lvOpts(it.level)}</select></td>
-      <td><input class="sb-ev" type="number" min="0" max="100" value="${it.evidence_confidence}" style="width:64px"> %</td>
-      <td>${canVerify
+      <td class="tc-title">${esc(name)}</td>
+      <td data-label="레벨"><select class="sb-lv">${lvOpts(it.level)}</select></td>
+      <td data-label="Evidence (%)"><input class="sb-ev" type="number" min="0" max="100" value="${it.evidence_confidence}" style="width:64px"><span class="unit"> %</span></td>
+      <td ${canVerify ? "" : 'data-label="검증"'}>${canVerify
         ? `<label class="small"><input type="checkbox" class="sb-vf" ${it.evidence_verified ? "checked" : ""}> 검증</label>`
         : (it.evidence_verified ? "✅검증" : "-")}</td>
-      <td><button class="sb-save ghost" type="button">저장</button>
+      <td class="tc-act"><button class="sb-save ghost" type="button">저장</button>
           <button class="sb-del ghost" type="button">삭제</button></td>
     </tr>`;
   }).join("");
@@ -71,7 +71,7 @@ export async function renderSkillBlock(host, studentId, opts = {}) {
     </div>
     <div class="card">
       <h2>Skill (${sk.length})</h2>
-      <div class="scroll-x"><table>
+      <div class="scroll-x"><table class="tbl-cards">
         <tr><th>항목</th><th>레벨(자기평가)</th><th>Evidence</th><th>검증</th><th></th></tr>
         ${rowsHtml(sk, skills, "skill_id") || `<tr><td colspan="5" class="muted">없음</td></tr>`}
       </table></div>
@@ -80,7 +80,7 @@ export async function renderSkillBlock(host, studentId, opts = {}) {
     </div>
     <div class="card">
       <h2>Tool (${st.length})</h2>
-      <div class="scroll-x"><table>
+      <div class="scroll-x"><table class="tbl-cards">
         <tr><th>항목</th><th>레벨</th><th>Evidence</th><th>검증</th><th></th></tr>
         ${rowsHtml(st, tools, "tool_id") || `<tr><td colspan="5" class="muted">없음</td></tr>`}
       </table></div>

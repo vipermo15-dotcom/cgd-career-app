@@ -1,4 +1,5 @@
 import { signOut } from "../auth.js";
+import { toast, confirmDialog, skeleton, renderError } from "../ui.js";
 import {
   getMyDossier, updateArtifact, uploadArtifactFile, signedUrl,
   listApplications, addApplication, updateApplication, deleteApplication, getEmployment,
@@ -33,7 +34,7 @@ export async function renderStudent(el, { session, profile }) {
       <span class="muted small">${esc(session.user.email)}</span>
       <button id="so" class="ghost">로그아웃</button>
     </header>
-    <section id="pane"><p class="muted">불러오는 중…</p></section>`;
+    <section id="pane">${skeleton(4)}</section>`;
   el.querySelector("#so").onclick = signOut;
 
   if (!profile.student_id) {
@@ -45,7 +46,7 @@ export async function renderStudent(el, { session, profile }) {
 }
 
 async function paint(pane, studentId) {
-  pane.innerHTML = `<p class="muted">불러오는 중…</p>`;
+  pane.innerHTML = skeleton(4);
   let d;
   let apps = [], emp = null, prefs = [], postings = [], matches = [];
   try {
@@ -53,7 +54,7 @@ async function paint(pane, studentId) {
       getMyDossier(studentId), listApplications(studentId), getEmployment(studentId),
       getPreferences(studentId), listJobPostings(), getTopMatches(studentId),
     ]);
-  } catch (e) { pane.innerHTML = `<div class="card err">${esc(e.message)}</div>`; return; }
+  } catch (e) { return renderError(pane, e, () => paint(pane, studentId)); }
   const s = d.student;
   const appliedPids = new Set(apps.map((a) => a.job_posting_id).filter(Boolean));
   const matchByPid = {}; (matches || []).forEach((m) => (matchByPid[m.posting_id] = m));
@@ -112,15 +113,15 @@ async function paint(pane, studentId) {
 
     <div class="card">
       <h2>맞춤 추천</h2>
-      ${(matches || []).length ? `<div class="scroll-x"><table>
+      ${(matches || []).length ? `<div class="scroll-x"><table class="tbl-cards">
         <tr><th>등급</th><th>기업</th><th>공고명</th><th>마감</th><th></th></tr>
         ${matches.slice(0, 8).map((m) => `
           <tr data-mpid="${m.posting_id}">
-            <td>${gradeBadge(m)} <span class="muted small">${esc(m.grade_label)}</span></td>
-            <td>${esc(m.company)}</td>
-            <td>${esc(m.title)}</td>
-            <td class="small">${esc(m.deadline || "")} ${dState(m.deadline)}</td>
-            <td><button class="m-gap ghost" type="button">GAP</button>
+            <td class="tc-title">${gradeBadge(m)} <span class="muted small">${esc(m.grade_label)}</span></td>
+            <td data-label="기업">${esc(m.company)}</td>
+            <td class="tc-wide" data-label="공고명">${esc(m.title)}</td>
+            <td class="small" data-label="마감">${esc(m.deadline || "") || "—"} ${dState(m.deadline)}</td>
+            <td class="tc-act"><button class="m-gap ghost" type="button">GAP</button>
                 ${appliedPids.has(m.posting_id) ? `<span class="muted small">등록됨</span>`
                   : `<button class="jp-apply ghost" data-pid="${m.posting_id}" type="button">관심</button>`}</td>
           </tr>`).join("")}
@@ -144,18 +145,18 @@ async function paint(pane, studentId) {
     <div class="card">
       <h2>내 지원 관리 (${apps.length})</h2>
       ${emp ? `<p class="badge">🎉 취업 확정 · ${esc(emp.company)}${emp.position ? " · " + esc(emp.position) : ""}</p>` : ""}
-      <div class="scroll-x"><table>
+      <div class="scroll-x"><table class="tbl-cards">
         <tr><th>회사</th><th>직무명</th><th>상태</th><th>지원일</th><th></th></tr>
         ${apps.map((a) => `
           <tr data-app="${a.id}">
-            <td>${esc(a.company)}</td>
-            <td>${esc(a.position || "")}</td>
-            <td><select class="ap-status">
+            <td class="tc-title">${esc(a.company)}</td>
+            <td data-label="직무명">${esc(a.position || "") || "—"}</td>
+            <td data-label="상태"><select class="ap-status">
               ${Object.entries(APPLICATION_STATUS).map(([k, v]) =>
                 `<option value="${k}" ${k === a.status ? "selected" : ""}>${v}</option>`).join("")}
             </select></td>
-            <td><input class="ap-date" type="date" value="${esc(a.applied_at || "")}"></td>
-            <td><button class="ap-del ghost" type="button">삭제</button></td>
+            <td data-label="지원일"><input class="ap-date" type="date" value="${esc(a.applied_at || "")}"></td>
+            <td class="tc-act"><button class="ap-del ghost" type="button">삭제</button></td>
           </tr>`).join("") || `<tr><td colspan="5" class="muted">지원 내역 없음</td></tr>`}
       </table></div>
       <button id="ap-save" class="ghost">저장</button> <span id="ap-msg" class="msg"></span>
@@ -175,15 +176,15 @@ async function paint(pane, studentId) {
 
     <div class="card">
       <h2>채용공고 (${postings.length})</h2>
-      <div class="scroll-x"><table>
+      <div class="scroll-x"><table class="tbl-cards">
         <tr><th>기업</th><th>공고명</th><th>분류</th><th>마감</th><th></th></tr>
         ${postings.map((p) => `
           <tr>
-            <td>${esc(p.company)} ${gradeBadge(matchByPid[p.id])}</td>
-            <td>${esc(p.title)}${p.url ? ` <a href="${esc(p.url)}" target="_blank" rel="noopener" class="small">↗</a>` : ""}</td>
-            <td>${esc(JOB_CATEGORIES[p.job_category] || "")}</td>
-            <td>${esc(p.deadline || "")} <span class="muted small">${dState(p.deadline)}</span></td>
-            <td>${appliedPids.has(p.id)
+            <td class="tc-title">${esc(p.company)} ${gradeBadge(matchByPid[p.id])}</td>
+            <td class="tc-wide" data-label="공고명">${esc(p.title)}${p.url ? ` <a href="${esc(p.url)}" target="_blank" rel="noopener" class="small">↗</a>` : ""}</td>
+            <td data-label="분류">${esc(JOB_CATEGORIES[p.job_category] || "") || "—"}</td>
+            <td data-label="마감">${esc(p.deadline || "") || "—"} <span class="muted small">${dState(p.deadline)}</span></td>
+            <td class="tc-act">${appliedPids.has(p.id)
               ? `<span class="muted small">등록됨</span>`
               : `<button class="jp-apply ghost" data-pid="${p.id}" type="button">관심 등록</button>`}</td>
           </tr>`).join("") || `<tr><td colspan="5" class="muted">등록된 공고 없음</td></tr>`}
@@ -205,7 +206,7 @@ async function paint(pane, studentId) {
       const p = postings.find((x) => x.id === b.dataset.pid)
         || (matches || []).find((m) => m.posting_id === b.dataset.pid);
       try { await applyToPosting(studentId, { ...p, id: b.dataset.pid }); paint(pane, studentId); }
-      catch (e) { b.disabled = false; alert(e.message); }
+      catch (e) { b.disabled = false; toast(e.message, "err"); }
     };
   });
 
@@ -268,9 +269,12 @@ function wireApplications(pane, studentId, refresh) {
   };
   pane.querySelectorAll(".ap-del").forEach((b) => {
     b.onclick = async () => {
-      if (!confirm("이 지원 건을 삭제할까요?")) return;
-      await deleteApplication(b.closest("tr").dataset.app);
-      refresh();
+      const ok = await confirmDialog({
+        title: "이 지원 건을 삭제할까요?", body: "삭제하면 되돌릴 수 없어요.", okLabel: "삭제", danger: true,
+      });
+      if (!ok) return;
+      try { await deleteApplication(b.closest("tr").dataset.app); toast("삭제했어요."); refresh(); }
+      catch (err) { toast(err.message, "err"); }
     };
   });
   pane.querySelector("#na-add").onclick = async (e) => {
