@@ -74,7 +74,7 @@ code {
 
 /* ---------- 입력 ---------- */
 input, select, textarea {
-  font: inherit; letter-spacing: -0.01em;
+  font: inherit; font-size: 16px; letter-spacing: -0.01em;   /* 16px 미만이면 iOS Safari 가 포커스 시 화면을 자동 확대함 */
   padding: 10px 13px; border-radius: 10px;
   border: 1px solid var(--line); background: var(--input); color: var(--ink); width: 100%;
 }
@@ -160,6 +160,9 @@ table.rowlink tr[data-id]:hover td { background: var(--bg-alt); }
   display: inline-block; margin: 2px 4px 2px 0; padding: 3px 11px;
   background: var(--bg-alt); color: var(--ink); border-radius: var(--pill); font-size: 13px;
 }
+/* 배지 안의 링크(자료 열기·삭제)는 글자만큼만 눌림 영역이 생겨 모바일에서 오탭하기 쉬움 → 여백을 넓혀줌 */
+.badge a { display: inline-block; padding: 4px 3px; margin: -4px -3px; }
+.badge a[class*="del"] { margin-left: 4px; }
 
 /* ---------- 상세 패널 ---------- */
 .detail .dhead { display: flex; align-items: center; }
