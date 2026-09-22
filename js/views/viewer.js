@@ -12,6 +12,7 @@ export async function renderViewer(el, { session }) {
     <header class="topbar">
       <strong>공동훈련센터 · 열람</strong>
       <span class="muted small">${esc(session.user.email)}</span>
+      <a href="#/" class="ghost home-link" title="홈으로">🏠 홈</a>
       <button id="so" class="ghost">로그아웃</button>
     </header>
     <div id="cohortbar" class="cohortbar"></div>

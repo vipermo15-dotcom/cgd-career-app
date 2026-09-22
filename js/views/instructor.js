@@ -65,6 +65,7 @@ export async function renderInstructor(el, { session, profile }) {
     <header class="topbar">
       <strong>강사 대시보드</strong>
       <span class="muted small">${esc(session.user.email)}</span>
+      <a href="#/" class="ghost home-link" title="홈으로">🏠 홈</a>
       <button id="so" class="ghost">로그아웃</button>
     </header>
     <div id="cohortbar" class="cohortbar"></div>

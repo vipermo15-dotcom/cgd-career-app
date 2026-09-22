@@ -16,6 +16,7 @@ export function renderAdmin(el, { session }) {
     <header class="topbar">
       <strong>관리자</strong>
       <span class="muted small">${esc(session.user.email)}</span>
+      <a href="#/" class="ghost home-link" title="홈으로">🏠 홈</a>
       <a href="#/instructor" class="ghost" style="text-decoration:none;padding:8px 12px;border:1px solid var(--line);border-radius:8px">강사 화면 →</a>
       <button id="so" class="ghost">로그아웃</button>
     </header>

@@ -32,6 +32,7 @@ export async function renderStudent(el, { session, profile }) {
     <header class="topbar">
       <strong>내 취업 준비</strong>
       <span class="muted small">${esc(session.user.email)}</span>
+      <a href="#/" class="ghost home-link" title="홈으로">🏠 홈</a>
       <button id="so" class="ghost">로그아웃</button>
     </header>
     <section id="pane">${skeleton(4)}</section>`;
