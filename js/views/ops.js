@@ -511,7 +511,7 @@ export async function paintControlTower(pane, cohort, { onNavigate } = {}) {
       ${i.student_codes.length ? `<span class="muted small">(${i.student_codes.map(esc).join(", ")})</span>` : ""}</li>`).join("");
 
   pane.innerHTML = `
-    <div class="card"><h1 style="margin:0 0 4px">종합관제판 <span class="muted small">주간 ${esc(ct.week_start)} ~ ${esc(ct.week_end)}</span></h1>
+    <div class="card"><h1 style="margin:0 0 4px">DASHBOARD <span class="muted small">주간 ${esc(ct.week_start)} ~ ${esc(ct.week_end)}</span></h1>
       <p class="muted small">${esc(ct.scope_note)}</p>
       <div class="grid kpis">
         ${kpi("보고 대상", emp.target_count + "명", "students")}

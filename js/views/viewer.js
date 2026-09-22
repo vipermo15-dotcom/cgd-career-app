@@ -20,7 +20,7 @@ export async function renderViewer(el, { session, profile }) {
     </header>
     <div id="cohortbar" class="cohortbar"></div>
     <nav class="tabs with-icons" aria-label="열람 메뉴">
-      ${tabBtn("control", "종합관제판", true)}${tabBtn("report", "성과보고")}${tabBtn("weekly", "주차현황")}${tabBtn("employer", "업체현황")}
+      ${tabBtn("control", "DASHBOARD", true)}${tabBtn("report", "성과보고")}${tabBtn("weekly", "주차현황")}${tabBtn("employer", "업체현황")}
       ${isLead ? tabBtn("register", "업체 등록") : ""}
     </nav>
     <section id="pane">${skeleton(4)}</section>`;

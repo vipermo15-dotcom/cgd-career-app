@@ -70,7 +70,7 @@ export async function renderInstructor(el, { session, profile }) {
     </header>
     <div id="cohortbar" class="cohortbar"></div>
     <nav class="tabs with-icons" aria-label="강사 메뉴">
-      ${tabBtn("summary", "현황", true)}${tabBtn("control", "종합관제판")}${tabBtn("weekly", "주차현황")}${tabBtn("employer", "업체현황")}
+      ${tabBtn("summary", "현황", true)}${tabBtn("control", "DASHBOARD")}${tabBtn("weekly", "주차현황")}${tabBtn("employer", "업체현황")}
       ${tabBtn("kpi", "실적")}${tabBtn("students", "학생")}${tabBtn("followup", "사후관리")}${tabBtn("report", "성과보고")}${tabBtn("postings", "공고")}${tabBtn("roster", "명단")}
     </nav>
     <section id="pane">${skeleton(4)}</section>`;
@@ -547,7 +547,7 @@ async function openDetail(host, id, refresh, opts = {}) {
       <h2>진행 요약</h2>
       <div id="i-progress"></div>
 
-      <h2>특이사항 <span class="muted small">(강사·관리자만 입력, 센터는 종합관제판에서 열람)</span></h2>
+      <h2>특이사항 <span class="muted small">(강사·관리자만 입력, 센터는 DASHBOARD에서 열람)</span></h2>
       <div id="i-notes"></div>
 
       <h2>희망 직무</h2>

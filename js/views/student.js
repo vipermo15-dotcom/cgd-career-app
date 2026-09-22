@@ -144,7 +144,7 @@ async function paint(pane, studentId) {
         <button id="gh-save" class="ghost" type="button">저장</button>
         <span id="gh-msg" class="msg"></span>
       </div>
-      <p class="muted small">담당 강사·관리자가 종합관제판·학생 상세에서 이 링크를 함께 볼 수 있습니다.</p>
+      <p class="muted small">담당 강사·관리자가 DASHBOARD·학생 상세에서 이 링크를 함께 볼 수 있습니다.</p>
     </div>
 
     <div class="card">
