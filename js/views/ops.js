@@ -465,15 +465,17 @@ export async function renderStudentOps(host, { studentId, code, student, isAdmin
 /* =====================================================================
    0) 종합관제판 · 업체현황 (강사·관리자·센터 공용)
    ===================================================================== */
-export async function paintControlTower(pane, cohort) {
+export async function paintControlTower(pane, cohort, { onNavigate } = {}) {
   pane.innerHTML = skeleton(4);
   let ct;
   try { ct = await getControlTower(cohort); }
   catch (e) { return renderError(pane, e, () => paintControlTower(pane, cohort)); }
   const emp = ct.employment;
-  const kpi = (label, v) => `<div class="card kpi"><span>${label}</span><b>${v}</b></div>`;
+  const kpi = (label, v, tab) => tab
+    ? `<div class="card kpi clickable" data-nav="${tab}" role="button" tabindex="0"><span>${label}</span><b>${v}</b></div>`
+    : `<div class="card kpi"><span>${label}</span><b>${v}</b></div>`;
   const jobRows = ct.job_search_by_category.map((x) =>
-    `<tr><td>${esc(x.name)}</td><td>${x.applied}</td><td>${x.interview}</td></tr>`).join("")
+    `<tr class="clickable" data-nav="students"><td>${esc(x.name)}</td><td>${x.applied}</td><td>${x.interview}</td></tr>`).join("")
     || `<tr><td colspan="3" class="muted">이번 주 구직활동 기록이 없습니다.</td></tr>`;
   const maxN = Math.max(1, ...ct.hire_timeline.map((t) => t.count));
   const timeline = ct.hire_timeline.map((t) => `
@@ -483,29 +485,30 @@ export async function paintControlTower(pane, cohort) {
   const retention = ct.post_care.retention.map((r) => `<span class="badge lg">${esc(r.status)} ${r.count}</span>`).join(" ")
     || `<span class="muted small">해당 없음</span>`;
   const notes = ct.recent_notes.map((n) => `
-    <li><span class="muted small">${esc((n.created_at || "").slice(0, 16).replace("T", " "))} · ${esc(n.student_code)} · ${n.author_role === "admin" ? "학과장" : "강사"}</span>
+    <li class="clickable" data-nav="students" data-code="${esc(n.student_code)}"><span class="muted small">${esc((n.created_at || "").slice(0, 16).replace("T", " "))} · ${esc(n.student_code)} · ${n.author_role === "admin" ? "학과장" : "강사"}</span>
       <div>${esc(n.note)}</div></li>`).join("") || `<li class="muted">최근 등록된 특이사항이 없습니다.</li>`;
   const fu = ct.followup_due_soon.map((i) =>
-    `<li><b>${esc(i.student_code)}</b> ${esc(i.detail)} <span class="muted small">${esc(i.date || "")}</span></li>`).join("")
+    `<li class="clickable" data-nav="followup"><b>${esc(i.student_code)}</b> ${esc(i.detail)} <span class="muted small">${esc(i.date || "")}</span></li>`).join("")
     || `<li class="muted">임박한 사후관리가 없습니다.</li>`;
 
   pane.innerHTML = `
     <div class="card"><h1 style="margin:0 0 4px">종합관제판 <span class="muted small">주간 ${esc(ct.week_start)} ~ ${esc(ct.week_end)}</span></h1>
       <p class="muted small">${esc(ct.scope_note)}</p>
       <div class="grid kpis">
-        ${kpi("보고 대상", emp.target_count + "명")}
-        ${kpi("취업 확정(공식)", emp.employed_confirmed + "명")}
-        ${kpi("검증 대기", emp.employed_pending_verification + "명")}
-        ${kpi("취업률(" + esc(emp.denominator_label) + ")", pct(emp.employment_rate))}
-        ${kpi("이번 주 신규 입사", emp.employed_this_week + "명")}
+        ${kpi("보고 대상", emp.target_count + "명", "students")}
+        ${kpi("취업 확정(공식)", emp.employed_confirmed + "명", "employer")}
+        ${kpi("검증 대기", emp.employed_pending_verification + "명", "students")}
+        ${kpi("취업률(" + esc(emp.denominator_label) + ")", pct(emp.employment_rate), "report")}
+        ${kpi("이번 주 신규 입사", emp.employed_this_week + "명", "employer")}
       </div>
+      <p class="muted small">카드를 클릭하면 해당 메뉴로 이동합니다.</p>
     </div>
     <div class="cols2">
       <div class="card"><h2>이번 주 구직활동 (직무별)</h2><table><tr><th>직무</th><th>지원</th><th>면접</th></tr>${jobRows}</table></div>
-      <div class="card"><h2>취업 시기 (최근 12개월)</h2><div class="funnel">${timeline}</div></div>
+      <div class="card clickable" data-nav="employer"><h2>취업 시기 (최근 12개월)</h2><div class="funnel">${timeline}</div></div>
     </div>
     <div class="cols2">
-      <div class="card"><h2>취업 후 사후지도</h2>
+      <div class="card clickable" data-nav="employer"><h2>취업 후 사후지도</h2>
         <p class="small">검증 완료 ${ct.post_care.total_verified}명 · 고용보험 확인 ${ct.post_care.insurance_checked} / 미확인 ${ct.post_care.insurance_pending}
           · 계약서 확인 ${ct.post_care.contract_checked} / 미확인 ${ct.post_care.contract_pending}</p>
         <div>${retention}</div>
@@ -513,6 +516,12 @@ export async function paintControlTower(pane, cohort) {
       <div class="card"><h2>사후관리 임박</h2><ul class="log feed">${fu}</ul></div>
     </div>
     <div class="card"><h2>최근 특이사항</h2><ul class="log feed">${notes}</ul></div>`;
+
+  pane.querySelectorAll("[data-nav]").forEach((el) => {
+    const go = () => onNavigate && onNavigate(el.dataset.nav, el.dataset.code ? { focusCode: el.dataset.code } : undefined);
+    el.onclick = go;
+    el.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } };
+  });
 }
 
 export async function paintEmployerDirectory(pane, cohort) {

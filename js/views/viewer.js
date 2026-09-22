@@ -26,11 +26,13 @@ export async function renderViewer(el, { session }) {
   const show = (name) => {
     if (!cohort) return;
     markTab(tabs, name);
-    if (name === "control") paintControlTower(pane, cohort);
+    if (name === "control") paintControlTower(pane, cohort, { onNavigate: nav });
     if (name === "report") paintReport(pane, cohort);
     if (name === "weekly") paintWeekly(pane, cohort, { readOnly: true });
     if (name === "employer") paintEmployerDirectory(pane, cohort);
   };
+  // 열람 전용 — 학생 상세로는 이동하지 않고, 센터가 볼 수 있는 탭으로만 이동
+  const nav = (tab) => { if (["control", "report", "weekly", "employer"].includes(tab)) show(tab); };
   tabs.forEach((b) => (b.onclick = () => show(b.dataset.tab)));
   let list = [];
   try { list = await listCohorts(); } catch (e) { return renderError(pane, e, () => renderViewer(el, { session })); }

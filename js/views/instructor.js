@@ -80,20 +80,22 @@ export async function renderInstructor(el, { session, profile }) {
   const tabs = [...el.querySelectorAll(".tabs button")];
   let cohort = null;
 
-  const show = (name) => {
+  const show = (name, opts) => {
     if (!cohort) return;
     markTab(tabs, name);
     if (name === "summary") paintSummary(pane, cohort);
-    if (name === "control") paintControlTower(pane, cohort);
+    if (name === "control") paintControlTower(pane, cohort, { onNavigate: nav });
     if (name === "employer") paintEmployerDirectory(pane, cohort);
     if (name === "weekly") paintWeekly(pane, cohort);
     if (name === "followup") paintFollowups(pane, cohort);
     if (name === "report") paintReport(pane, cohort);
     if (name === "kpi") paintKPI(pane, cohort);
-    if (name === "students") paintStudents(pane, cohort);
+    if (name === "students") paintStudents(pane, cohort, opts?.focusCode);
     if (name === "postings") paintPostings(pane);
     if (name === "roster") paintRoster(pane, cohort);
   };
+  // 종합관제판 카드·목록 클릭 → 해당 메뉴로 이동(학생별 항목은 상세까지 자동으로 엶)
+  const nav = (tab, opts) => show(tab, opts);
   tabs.forEach((b) => (b.onclick = () => show(b.dataset.tab)));
 
   async function refreshCohortBar() {
@@ -132,6 +134,16 @@ export async function renderInstructor(el, { session, profile }) {
   const currentTab = () => (tabs.find((b) => b.classList.contains("on")) || tabs[0]).dataset.tab;
 
   await refreshCohortBar();
+
+  // 관리자 화면(종합관제판)에서 "강사 화면으로" 이동해온 경우 원래 보던 메뉴를 이어서 연다.
+  try {
+    const raw = sessionStorage.getItem("cgd_pending_nav");
+    if (raw) {
+      sessionStorage.removeItem("cgd_pending_nav");
+      const pending = JSON.parse(raw);
+      if (pending?.tab) show(pending.tab, pending.code ? { focusCode: pending.code } : undefined);
+    }
+  } catch {}
 }
 
 async function cohortForm(bar, done) {
@@ -420,7 +432,7 @@ function nextAction(s) {
 }
 
 /* ---------- 학생 목록 + 상세 ---------- */
-async function paintStudents(pane, cohort) {
+async function paintStudents(pane, cohort, focusCode) {
   pane.innerHTML = skeleton(4);
   let rows;
   try { rows = await listStudents(cohort); }
@@ -467,6 +479,15 @@ async function paintStudents(pane, cohort) {
   pane.querySelectorAll("tr[data-id]").forEach((row) => {
     row.onclick = () => openDetail(pane.querySelector("#detail"), row.dataset.id, () => paintStudents(pane, cohort), { scroll: true });
   });
+
+  if (focusCode) {
+    const row = sorted.find((r) => r.code === focusCode);
+    if (row) {
+      const tr = pane.querySelector(`tr[data-id="${row.id}"]`);
+      tr?.click();
+      tr?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }
 }
 
 const catOpts = (sel) => `<option value="">직무-</option>` +
