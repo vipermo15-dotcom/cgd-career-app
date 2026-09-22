@@ -412,7 +412,7 @@ export const STATUS = {
   normal: "🟢 정상", check: "🟡 점검", delayed: "🔴 지연",
   ahead: "🔵 여유", placed: "✅ 확정", data_mismatch: "⚠️ 불일치",
 };
-export const ARTIFACT_TYPES = ["이력서", "자기소개서", "포트폴리오PDF", "HTML랜딩", "피그마포폴"];
+export const ARTIFACT_TYPES = ["이력서", "자기소개서", "포트폴리오PDF", "HTML랜딩", "피그마포폴", "어도비포폴"];
 
 
 /* ---------- STEP 13: 성과보고 · 면접 · 사후관리 · 주차별 현황 ----------

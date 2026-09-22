@@ -456,7 +456,7 @@ async function paintStudents(pane, cohort, focusCode) {
       <td data-label="트랙">${esc(r.track || "") || "—"}</td>
       <td data-label="단계">${esc(r.stage)}</td>
       <td data-label="상태">${esc(STATUS[r.status] || r.status)}</td>
-      <td class="small" data-label="아티팩트 (이력·자소·PDF·랜딩·피그마)">${artCell(r.artifacts)}</td>
+      <td class="small" data-label="아티팩트 (이력·자소·PDF·랜딩·피그마·어도비)">${artCell(r.artifacts)}</td>
       <td class="small tc-wide" data-label="다음 액션">${esc(na.label)}${na.trig ? ` <span class="muted">${esc(na.trig)}</span>` : ""}</td>
     </tr>`;
   }).join("");
@@ -472,7 +472,7 @@ async function paintStudents(pane, cohort, focusCode) {
     <div class="card"><h2>확인 필요 (${todo.length}명 · 번호순)</h2><ul class="gates">${todoList}</ul></div>
     <div class="card"><div class="scroll-x"><table class="rowlink tbl-cards">
       <tr><th>이름</th><th>트랙</th><th>단계</th><th>상태</th>
-          <th class="small">이력·자소·PDF·랜딩·피그마</th><th>다음 액션</th></tr>
+          <th class="small">이력·자소·PDF·랜딩·피그마·어도비</th><th>다음 액션</th></tr>
       ${tr}
     </table></div></div>
     <div id="detail"></div>`;
@@ -521,7 +521,7 @@ async function openDetail(host, id, refresh, opts = {}) {
       <td data-label="상태"><select class="a-status">
         ${["미확인", "진행", "완료"].map((v) => `<option ${v === a.status ? "selected" : ""}>${v}</option>`).join("")}
       </select></td>
-      <td data-label="링크"><input class="a-url" value="${esc(a.external_url || "")}" placeholder="링크(랜딩·피그마)"></td>
+      <td data-label="링크"><input class="a-url" value="${esc(a.external_url || "")}" placeholder="링크(랜딩·피그마·어도비)"></td>
     </tr>`).join("");
   const fbList = d.feedback.map((f) => `
     <li><b>${esc(f.author)}</b> <span class="muted small">${esc(f.stage || "")} · ${esc(f.created_at?.slice(0, 10))}</span>
@@ -821,7 +821,7 @@ async function paintRoster(pane, cohort) {
     <div class="card">
       <h2>명단 가져오기 (import_roster)</h2>
       <p class="muted small"><b>CSV</b>(엑셀에서 복사) 또는 <b>JSON 배열</b>. <code>code</code> 필수,
-      나머지 선택(track·stage·status·note). 기존 <code>code</code>는 갱신, 신규는 아티팩트 5종 자동 생성.</p>
+      나머지 선택(track·stage·status·note). 기존 <code>code</code>는 갱신, 신규는 아티팩트 6종 자동 생성.</p>
       <p class="muted small">CSV 헤더 예: <code>번호,트랙,상태</code> 또는 <code>code,track,status</code></p>
       <textarea id="r-in" rows="9" placeholder="번호,트랙,상태
 S19,패키지 디자이너,

@@ -24,7 +24,7 @@ const dState = (deadline) => {
 // 파일 업로드형 vs 링크형
 const INPUT_KIND = {
   "이력서": "file", "자기소개서": "file", "포트폴리오PDF": "file",
-  "HTML랜딩": "url", "피그마포폴": "url",
+  "HTML랜딩": "url", "피그마포폴": "url", "어도비포폴": "url",
 };
 
 export async function renderStudent(el, { session, profile }) {
