@@ -635,3 +635,11 @@ export async function registerEmployment({
   });
   if (error) throw error;
 }
+
+/* ---------- STEP 16: 학과·센터 50:50 공동부담(본부장 지침) ---------- */
+export const getPlacementSplit = (cohort = null) => rpc("cgd_placement_split", { p_cohort: cohort });
+export async function addCenterNote(studentId, note) {
+  const { error } = await supabase.rpc("cgd_add_center_note", { p_student: studentId, p_note: note });
+  if (error) throw error;
+}
+export const CENTER_EMPLOYMENT_TYPES = ["정규직", "계약직", "인턴"];

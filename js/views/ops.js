@@ -10,7 +10,7 @@ import {
   verifyEmployment, setEmploymentCare, setOutcomeStatus, setCompletionStatus, getEmployment,
   getControlTower, getEmployerDirectory, listMentorNotes, addMentorNote, deleteMentorNote,
   getTopMatches, listPortfolioReviews, setStudentGithubUrl, setEmployment,
-  listCompanies, registerCompany, registerEmployment,
+  listCompanies, registerCompany, registerEmployment, getPlacementSplit, addCenterNote, CENTER_EMPLOYMENT_TYPES,
   OUTCOME_LABEL, INTERVIEW_RESULT, DOC_KIND, RETENTION, FOLLOWUP_STATUS, STAGES, GRADE_CLASS,
   JOB_CATEGORIES, EMPLOYMENT_TYPES,
 } from "../data.js";
@@ -469,8 +469,8 @@ export async function renderStudentOps(host, { studentId, code, student, isAdmin
    ===================================================================== */
 export async function paintControlTower(pane, cohort, { onNavigate } = {}) {
   pane.innerHTML = skeleton(4);
-  let ct, tasks, dq;
-  try { [ct, tasks, dq] = await Promise.all([getControlTower(cohort), getTodayTasks(cohort), getDataQuality(cohort)]); }
+  let ct, tasks, dq, split;
+  try { [ct, tasks, dq, split] = await Promise.all([getControlTower(cohort), getTodayTasks(cohort), getDataQuality(cohort), getPlacementSplit(cohort)]); }
   catch (e) { return renderError(pane, e, () => paintControlTower(pane, cohort)); }
   const emp = ct.employment;
   const kpi = (label, v, tab) => tab
@@ -522,6 +522,14 @@ export async function paintControlTower(pane, cohort, { onNavigate } = {}) {
       </div>
       <p class="muted small">카드를 클릭하면 해당 메뉴로 이동합니다.</p>
     </div>
+    <div class="card clickable" data-nav="employer"><h2>학과·공동훈련센터 취업성과 분담</h2>
+      <p class="muted small">본부장 지침 — 취업 50:50 공동부담 원칙 모니터링용(권장 목표, 강제 배분 아님)</p>
+      <div class="arow" style="gap:24px">
+        <div class="kpi"><span>학과 성사</span><b>${split.department_count}명</b><span class="muted small">${split.department_pct ?? "-"}%</span></div>
+        <div class="kpi"><span>센터 성사</span><b>${split.center_count}명</b><span class="muted small">${split.center_pct ?? "-"}%</span></div>
+        <div class="kpi"><span>합계(공식 취업)</span><b>${split.total}명</b></div>
+      </div>
+    </div>
     <div class="card"><h2>오늘의 업무 (${tasks.total}건 · 기한순, 순위 없음)</h2>
       ${taskGroups || `<p class="muted small">오늘 처리할 업무가 없습니다.</p>`}
     </div>
@@ -558,8 +566,9 @@ export async function paintEmployerDirectory(pane, cohort, { canRegister, useRpc
     <tr><td><b>${esc(r.student_code)}</b></td><td>${esc(r.company)}</td><td>${esc(r.position || "")}</td>
       <td>${esc(r.employment_type || "")}</td><td>${esc(r.hire_date || "")}</td>
       <td>${r.contract_checked ? "✔" : "–"}</td><td>${r.insurance_checked ? "✔" : "–"}</td>
-      <td>${esc(r.retention_status || "미확인")}</td><td>${esc(r.evidence_type || "")}</td></tr>`).join("")
-    || `<tr><td colspan="9" class="muted">검증된 취업자가 없습니다.</td></tr>`;
+      <td>${esc(r.retention_status || "미확인")}</td><td>${esc(r.evidence_type || "")}</td>
+      <td><span class="badge">${esc(r.placement_channel || "")}</span></td></tr>`).join("")
+    || `<tr><td colspan="10" class="muted">검증된 취업자가 없습니다.</td></tr>`;
   pane.innerHTML = `
     <div class="card">
       <div class="row" style="justify-content:space-between;align-items:flex-start">
@@ -569,14 +578,46 @@ export async function paintEmployerDirectory(pane, cohort, { canRegister, useRpc
       </div>
       <div id="ef-form"></div>
       <div class="scroll-x"><table class="tbl-cards">
-        <tr><th>번호</th><th>업체</th><th>직무</th><th>고용형태</th><th>입사일</th><th>계약서</th><th>보험</th><th>재직상태</th><th>증빙</th></tr>
+        <tr><th>번호</th><th>업체</th><th>직무</th><th>고용형태</th><th>입사일</th><th>계약서</th><th>보험</th><th>재직상태</th><th>증빙</th><th>성사 주체</th></tr>
         ${rows}</table></div>
-    </div>`;
+    </div>
+    ${useRpc ? `<div class="card"><h2>학생별 활동 기록 추가</h2>
+      <p class="muted small">수료생 취업을 위해 진행한 상담·연계 활동을 남깁니다. 학과·본부장이 함께 볼 수 있습니다.</p>
+      <div id="cn-form"></div></div>` : ""}`;
   if (canRegister) {
     pane.querySelector("#ef-open").onclick = () =>
       employmentQuickForm(pane.querySelector("#ef-form"), cohort,
         () => paintEmployerDirectory(pane, cohort, { canRegister, useRpc }), { useRpc });
   }
+  if (useRpc) centerNoteForm(pane.querySelector("#cn-form"), cohort);
+}
+
+async function centerNoteForm(host, cohort) {
+  const { supabase } = await import("../supabase.js");
+  let studs = [];
+  try {
+    const { data, error } = await supabase.from("students").select("id, code, display_name")
+      .eq("cohort_id", cohort).eq("report_included", true).order("code");
+    if (error) throw error; studs = data || [];
+  } catch (e) { host.innerHTML = `<p class="msg err">${esc(e.message)}</p>`; return; }
+  const studentOpts = studs.map((s) =>
+    `<option value="${s.id}">${esc(s.display_name ? `${s.display_name} (${s.code})` : s.code)}</option>`).join("");
+  host.innerHTML = `
+    <div class="row">
+      <select id="cn-student" style="min-width:160px">${studentOpts}</select>
+    </div>
+    <textarea id="cn-note" rows="2" placeholder="예: 기업 연계 상담 진행, 면접 일정 조율 등 (실명·학생 연락처 입력 금지)"></textarea>
+    <div class="row"><button id="cn-save" type="button">기록</button><span id="cn-msg" class="msg"></span></div>`;
+  host.querySelector("#cn-save").onclick = async (e) => {
+    const m = host.querySelector("#cn-msg"), t = host.querySelector("#cn-note");
+    if (!t.value.trim()) { setMsg(m, "내용을 입력하세요", "err"); return; }
+    await withBusy(e.target, async () => {
+      try {
+        await addCenterNote(host.querySelector("#cn-student").value, t.value.trim());
+        toast("기록했어요."); t.value = "";
+      } catch (err) { setMsg(m, err.message, "err"); }
+    });
+  };
 }
 
 /* 「+ 취업 확정 등록」 — 번호 대신 이름으로 찾아 등록. 등록만으로는 확정 안 됨(관리자 검증 별도). */
@@ -593,7 +634,8 @@ async function employmentQuickForm(host, cohort, done, { useRpc = false } = {}) 
   const studentOpts = studs.map((s) =>
     `<option value="${s.id}">${esc(s.display_name ? `${s.display_name} (${s.code})` : s.code)}</option>`).join("");
   const catOpts = Object.entries(JOB_CATEGORIES).map(([k, v]) => `<option value="${k}">${k} · ${v}</option>`).join("");
-  const typeOpts = EMPLOYMENT_TYPES.map((t) => `<option>${t}</option>`).join("");
+  const typeChoices = useRpc ? CENTER_EMPLOYMENT_TYPES : EMPLOYMENT_TYPES;   // 공동훈련센터는 정규직·계약직·인턴만(단기 아르바이트성 등록 차단)
+  const typeOpts = typeChoices.map((t) => `<option>${t}</option>`).join("");
   host.innerHTML = `
     <div class="card" style="margin-top:12px">
       <h2>취업 확정 등록</h2>
@@ -606,9 +648,10 @@ async function employmentQuickForm(host, cohort, done, { useRpc = false } = {}) 
         <label class="small">입사(예정)일 <input id="ef-date" type="date"></label>
       </div>
       <div class="row">
-        <input id="ef-contact" placeholder="채용 담당자 연락처(기업측)">
+        <input id="ef-contact" placeholder="채용 담당자 연락처(기업측)${useRpc ? " *필수" : ""}">
         <label class="chk"><input type="checkbox" id="ef-partner"> 협약기업 등록 여부</label>
       </div>
+      ${useRpc ? `<p class="muted small">공동훈련센터 등록은 정규직·계약직·인턴만 가능하며, 채용 담당자 연락처를 반드시 입력해야 합니다(단기 아르바이트성 등록 방지).</p>` : ""}
       <textarea id="ef-note" rows="2" placeholder="특이사항 (실명·학생 연락처 입력 금지)"></textarea>
       <div class="row">
         <button id="ef-save" type="button">등록</button>
@@ -622,6 +665,9 @@ async function employmentQuickForm(host, cohort, done, { useRpc = false } = {}) 
     const m = host.querySelector("#ef-msg");
     const company = host.querySelector("#ef-company").value.trim();
     if (!company) { setMsg(m, "취업처를 입력하세요", "err"); return; }
+    if (useRpc && !host.querySelector("#ef-contact").value.trim()) {
+      setMsg(m, "채용 담당자 연락처를 입력하세요(필수)", "err"); return;
+    }
     const patch = {
       company,
       position: host.querySelector("#ef-pos").value.trim() || null,
