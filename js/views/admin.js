@@ -61,8 +61,9 @@ async function paintUsers(pane) {
       <div class="card"><h2>역할 분포</h2><div>${dist(d.by_role)}</div></div>
       <div class="card"><h2>취업 고용형태</h2><div>${dist(d.employment_by_type)}</div></div>
     </div>`;
+  // viewer(열람 전용)는 더 이상 배정하지 않음 — 공동훈련센터는 center_lead 만 시스템을 봄
   const ROLE_LABEL = { "": "(미지정)", student: "student", instructor: "instructor",
-    viewer: "viewer(센터 열람)", center_lead: "center_lead(센터 팀장·담당)", admin: "admin" };
+    center_lead: "center_lead(공동훈련센터)", admin: "admin" };
   const roleOpt = (r) => Object.entries(ROLE_LABEL)
     .map(([v, label]) => `<option value="${v}" ${v === (r || "") ? "selected" : ""}>${label}</option>`).join("");
   pane.innerHTML = overviewHtml + `

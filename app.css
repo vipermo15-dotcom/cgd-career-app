@@ -373,6 +373,13 @@ input[type="search"] { -webkit-appearance: none; appearance: none; }
 .dlg p { margin: 0 0 20px; color: var(--muted); line-height: 1.6; }
 .dlg-row { display: flex; justify-content: flex-end; gap: 10px; }
 .dlg-row button { min-width: 88px; }
+.dlg.dlg-wide { width: min(520px, 100%); }
+.dlg .dlg-body { max-height: 40vh; overflow-y: auto; font-size: 13.5px; color: var(--ink); line-height: 1.6;
+  background: var(--bg-alt); border-radius: 12px; padding: 12px 14px; margin-bottom: 14px; }
+.dlg .dlg-body p { color: var(--ink); margin: 0 0 8px; }
+.dlg .dlg-body ul { margin: 0; padding-left: 18px; }
+.dlg .dlg-ack { display: flex; gap: 8px; align-items: flex-start; font-size: 13.5px; margin-bottom: 16px; }
+.dlg .dlg-ack input { width: auto; margin-top: 3px; }
 
 /* ============ 로딩 자리표시 · 오류 카드 ============ */
 .skel-list { display: flex; flex-direction: column; gap: 14px; padding: 8px 2px; }

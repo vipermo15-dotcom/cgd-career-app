@@ -467,7 +467,7 @@ export async function renderStudentOps(host, { studentId, code, student, isAdmin
 /* =====================================================================
    0) 종합관제판 · 업체현황 (강사·관리자·센터 공용)
    ===================================================================== */
-export async function paintControlTower(pane, cohort, { onNavigate } = {}) {
+export async function paintControlTower(pane, cohort, { onNavigate, audience = "internal" } = {}) {
   pane.innerHTML = skeleton(4);
   let ct, tasks, dq, split;
   try { [ct, tasks, dq, split] = await Promise.all([getControlTower(cohort), getTodayTasks(cohort), getDataQuality(cohort), getPlacementSplit(cohort)]); }
@@ -523,7 +523,7 @@ export async function paintControlTower(pane, cohort, { onNavigate } = {}) {
       <p class="muted small">카드를 클릭하면 해당 메뉴로 이동합니다.</p>
     </div>
     <div class="card clickable" data-nav="employer"><h2>학과·공동훈련센터 취업성과 분담</h2>
-      <p class="muted small">본부장 지침 — 취업 50:50 공동부담 원칙 모니터링용(권장 목표, 강제 배분 아님)</p>
+      <p class="muted small">${audience === "internal" ? "본부장 지침 — 취업 50:50 공동부담 원칙 모니터링용(권장 목표, 강제 배분 아님)" : "학과·공동훈련센터의 취업 성사 현황입니다."}</p>
       <div class="arow" style="gap:24px">
         <div class="kpi"><span>학과 성사</span><b>${split.department_count}명</b><span class="muted small">${split.department_pct ?? "-"}%</span></div>
         <div class="kpi"><span>센터 성사</span><b>${split.center_count}명</b><span class="muted small">${split.center_pct ?? "-"}%</span></div>
@@ -651,7 +651,7 @@ async function employmentQuickForm(host, cohort, done, { useRpc = false } = {}) 
         <input id="ef-contact" placeholder="채용 담당자 연락처(기업측)${useRpc ? " *필수" : ""}">
         <label class="chk"><input type="checkbox" id="ef-partner"> 협약기업 등록 여부</label>
       </div>
-      ${useRpc ? `<p class="muted small">공동훈련센터 등록은 정규직·계약직·인턴만 가능하며, 채용 담당자 연락처를 반드시 입력해야 합니다(단기 아르바이트성 등록 방지).</p>` : ""}
+      ${useRpc ? `<p class="muted small">정규직·계약직·인턴 중에서 선택하고, 채용 담당자 연락처를 입력해 주세요.</p>` : ""}
       <textarea id="ef-note" rows="2" placeholder="특이사항 (실명·학생 연락처 입력 금지)"></textarea>
       <div class="row">
         <button id="ef-save" type="button">등록</button>

@@ -643,3 +643,9 @@ export async function addCenterNote(studentId, note) {
   if (error) throw error;
 }
 export const CENTER_EMPLOYMENT_TYPES = ["정규직", "계약직", "인턴"];
+
+/* ---------- STEP 17: 개인정보 보호정책 로그인 확인(공동훈련센터) ---------- */
+export async function ackPrivacyPolicy(version = "v1") {
+  const { error } = await supabase.rpc("cgd_ack_privacy_policy", { p_version: version });
+  if (error) throw error;
+}

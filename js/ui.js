@@ -125,6 +125,70 @@ export function confirmDialog({ title, body = "", okLabel = "확인", cancelLabe
   });
 }
 
+/**
+ * 개인정보 보호정책 확인 대화상자 — 체크 전에는 닫을 수 없음(Esc·바깥 클릭 무시).
+ * onAck: 체크 후 확인 버튼을 눌렀을 때 호출되는 async 함수(서버에 감사 기록을 남기는 용도).
+ *        실패하면 대화상자를 닫지 않고 오류만 보여준다(반드시 기록이 남아야 진행되게).
+ */
+export function privacyAckDialog({ title, bodyHtml, ackLabel, okLabel = "확인하고 시작", onAck }) {
+  return new Promise((resolve) => {
+    const back = document.createElement("div");
+    back.className = "dlg-back";
+
+    const dlg = document.createElement("div");
+    dlg.className = "dlg dlg-wide";
+    dlg.setAttribute("role", "alertdialog");
+    dlg.setAttribute("aria-modal", "true");
+
+    const h = document.createElement("h2");
+    h.textContent = title;
+    dlg.append(h);
+
+    const body = document.createElement("div");
+    body.className = "dlg-body";
+    body.innerHTML = bodyHtml;
+    dlg.append(body);
+
+    const ack = document.createElement("label");
+    ack.className = "dlg-ack";
+    ack.innerHTML = `<input type="checkbox" id="dlg-ack-chk"><span>${ackLabel}</span>`;
+    dlg.append(ack);
+
+    const msg = document.createElement("p");
+    msg.className = "msg err";
+    msg.style.display = "none";
+    dlg.append(msg);
+
+    const row = document.createElement("div");
+    row.className = "dlg-row";
+    const ok = document.createElement("button");
+    ok.type = "button";
+    ok.textContent = okLabel;
+    ok.disabled = true;
+    row.append(ok);
+    dlg.append(row);
+
+    back.append(dlg);
+    document.body.append(back);
+
+    const chk = ack.querySelector("#dlg-ack-chk");
+    chk.onchange = () => { ok.disabled = !chk.checked; };
+    ok.onclick = async () => {
+      ok.disabled = true; msg.style.display = "none";
+      try {
+        if (onAck) await onAck();
+        back.remove();
+        resolve(true);
+      } catch (e) {
+        msg.textContent = e.message || "확인 처리에 실패했습니다. 다시 시도해 주세요.";
+        msg.style.display = "";
+        ok.disabled = !chk.checked;
+      }
+    };
+    // 체크 전에는 Esc·바깥 클릭으로 닫을 수 없음(의도적 — 확인 없이 진행 불가)
+  });
+}
+
 /* ---------- 로딩 자리표시 ---------- */
 export function skeleton(rows = 4) {
   const widths = [72, 92, 58, 84, 66, 78];
