@@ -582,7 +582,7 @@ export async function paintEmployerDirectory(pane, cohort, { canRegister, useRpc
         ${rows}</table></div>
     </div>
     ${useRpc ? `<div class="card"><h2>학생별 활동 기록 추가</h2>
-      <p class="muted small">수료생 취업을 위해 진행한 상담·연계 활동을 남깁니다. 학과·본부장이 함께 볼 수 있습니다.</p>
+      <p class="muted small">수료생 취업을 위해 진행한 상담·연계 활동을 남깁니다. 학과에서 함께 볼 수 있습니다.</p>
       <div id="cn-form"></div></div>` : ""}`;
   if (canRegister) {
     pane.querySelector("#ef-open").onclick = () =>
