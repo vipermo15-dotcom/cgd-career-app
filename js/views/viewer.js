@@ -41,6 +41,7 @@ export async function renderViewer(el, { session, profile }) {
       <strong>공동훈련센터 · 담당</strong>
       <span class="muted small">${esc(session.user.email)}</span>
       <a href="#/" class="ghost home-link" title="홈으로">🏠 홈</a>
+      <a href="help/center.html" target="_blank" rel="noopener" class="ghost" title="새 탭에서 매뉴얼 열기">📖 매뉴얼</a>
       <button id="so" class="ghost">로그아웃</button>
     </header>
     <div id="cohortbar" class="cohortbar"></div>

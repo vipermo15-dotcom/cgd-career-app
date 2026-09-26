@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>재학생 취업시스템 — 관리자 매뉴얼</title>
+<link rel="stylesheet" href="../app.css">
+<style>
+  .help-wrap { max-width: 760px; margin: 0 auto; padding: 28px 16px 64px; }
+  .help-doc h2 { margin: 28px 0 8px; padding-bottom: 6px; border-bottom: 2px dashed var(--line); font-size: 19px; }
+  .help-doc h3 { margin: 18px 0 6px; font-size: 16px; }
+  .help-doc ul, .help-doc ol { padding-left: 20px; margin: 6px 0; }
+  .help-doc li { margin: 4px 0; }
+  .help-doc p { margin: 8px 0; }
+  .help-doc blockquote { margin: 10px 0; padding: 8px 14px; border-left: 4px solid var(--accent); background: var(--bg-alt); color: var(--muted); border-radius: 8px; }
+  .help-doc table { width: 100%; border-collapse: collapse; font-size: 13.5px; margin: 10px 0; }
+  .help-doc th, .help-doc td { border: 1px solid var(--line); padding: 7px 10px; text-align: left; vertical-align: top; }
+  .help-doc th { background: var(--bg-alt); font-weight: 700; }
+  .help-doc code { background: var(--bg-alt); padding: 1px 6px; border-radius: 6px; font-size: 12.5px; }
+</style>
+</head>
+<body>
+<div class="help-wrap">
+  <header class="topbar" style="margin-bottom:16px">
+    <strong>재학생 취업시스템 — 관리자 매뉴얼</strong>
+    <a href="../#/admin" class="ghost home-link" title="화면으로 돌아가기">← 화면으로</a>
+  </header>
+  <div class="card help-doc"><blockquote>
+<p>접속: <a href="https://vipermo15-dotcom.github.io/cgd-career-app/">https://vipermo15-dotcom.github.io/cgd-career-app/</a></p>
+</blockquote>
+<h2>1. 로그인</h2>
+<ol>
+<li>위 주소 접속</li>
+<li>관리자 이메일 입력 → <strong>로그인 링크 받기</strong></li>
+<li>메일의 링크 클릭 → <strong>링크를 클릭한 브라우저에서</strong> 시스템 사용 (세션이 그 브라우저에 생김)</li>
+<li>관리자로 지정돼 있으면 자동으로 <strong>DASHBOARD</strong>(관리자 기본 화면)으로 진입. 상단 <strong>&quot;홈&quot;</strong> 으로 언제든 첫 화면으로 돌아올 수 있고, <strong>&quot;강사 화면 →&quot;</strong> 로 강사 대시보드를 왕복할 수 있습니다.</li>
+</ol>
+<h2>2. 관리자 화면 7탭</h2>
+<table>
+<thead>
+<tr>
+<th>탭</th>
+<th>용도</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>DASHBOARD</strong> (기본 화면)</td>
+<td>주간 취업 KPI(보고대상·취업확정·검증대기·취업률·이번주신규입사), 구직활동(직무별), 취업 시기, 사후지도(고용보험·계약서), 사후관리 임박, 최근 특이사항. 카드·목록을 클릭하면 관련 탭·학생 상세로 바로 이동</td>
+</tr>
+<tr>
+<td><strong>회원</strong></td>
+<td>로그인한 계정 목록(이메일·역할·학생번호) + 전체 회원·기수·학생·공고·지원·취업·AI 호출 수 / 역할 분포. 역할 변경(<code>student</code>/<code>instructor</code>/<code>center_lead</code>/<code>admin</code>) 후 <strong>저장</strong></td>
+</tr>
+<tr>
+<td><strong>업체현황</strong></td>
+<td>검증된 취업자 전원의 업체·직무·입사일·계약서·보험·재직상태. <strong>+ 취업 확정 등록</strong> 버튼으로 바로 등록 가능</td>
+</tr>
+<tr>
+<td><strong>기업</strong></td>
+<td>기업 등록·수정·삭제 (산업·규모·website·협약기업 여부)</td>
+</tr>
+<tr>
+<td><strong>기준데이터</strong></td>
+<td>11 직무(이름·정렬만 수정) / Skill·Tool 추가·수정·삭제</td>
+</tr>
+<tr>
+<td><strong>설정</strong></td>
+<td>매칭 가중치 8요소 + 준비도 가중치 5요소 + <strong>성과보고 기준</strong>(아래 2-1). 저장 시 <strong>다음 계산부터</strong> 반영</td>
+</tr>
+<tr>
+<td><strong>AI 로그</strong></td>
+<td>AI 호출 기록 (에이전트·신뢰도·모델·입력요약) — AI 배포 시에만 채워짐</td>
+</tr>
+</tbody></table>
+<h2>2-1. 성과보고 · 취업 검증</h2>
+<p><strong>강사 화면 탭</strong>: 현황 · DASHBOARD · 주차현황 · 업체현황 · 실적 · 학생 · 사후관리 · 성과보고 · 공고 · 명단</p>
+<table>
+<thead>
+<tr>
+<th>작업</th>
+<th>위치</th>
+<th>권한</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>취업 확정(검증) · 검증 취소</td>
+<td>학생 상세 &gt; 「취업 확정 검증」 (증빙 종류 입력 후 버튼)</td>
+<td><strong>관리자만</strong> (강사가 시도하면 서버가 거부)</td>
+</tr>
+<tr>
+<td>고용계약서·고용보험 확인, 취업 유지 상태</td>
+<td>같은 위치 「취업 후 관리」</td>
+<td>강사·관리자</td>
+</tr>
+<tr>
+<td>취업자 빠른 등록(담당자 연락처·협약기업·특이사항 포함)</td>
+<td>업체현황 탭 &gt; 「+ 취업 확정 등록」</td>
+<td>강사·관리자·공동훈련센터(팀장·담당)</td>
+</tr>
+<tr>
+<td>성과 상태 분류 (자료 미입력·미취업·보류·취업불가·취업거부·연락불가), 수료 처리</td>
+<td>학생 상세 &gt; 「성과 상태」</td>
+<td>강사·관리자</td>
+</tr>
+<tr>
+<td>진행 요약(추천 채용공고·최신 포트폴리오 평가·깃허브 링크)</td>
+<td>학생 상세 상단</td>
+<td>열람: 강사·관리자. 깃허브 링크 수정: 학생 본인·강사·관리자</td>
+</tr>
+<tr>
+<td><strong>특이사항</strong> 입력</td>
+<td>학생 상세 &gt; 「특이사항」</td>
+<td><strong>강사·관리자만 입력</strong>. 공동훈련센터는 DASHBOARD에서 열람만</td>
+</tr>
+<tr>
+<td>면접 등록·결과(합격/불합격)·기업별 자료</td>
+<td>학생 상세 &gt; 「면접·지원기업 자료」 (교육생도 본인 것 입력)</td>
+<td>강사·관리자·본인</td>
+</tr>
+<tr>
+<td>주차별 진로지도 기록</td>
+<td>주차현황 탭 &gt; 「기록」</td>
+<td>강사·관리자</td>
+</tr>
+<tr>
+<td>사후관리 일정 생성(수료일 +30일·+90일) · 처리</td>
+<td>사후관리 탭</td>
+<td>강사·관리자</td>
+</tr>
+<tr>
+<td>성과보고 3종 + 학생별 명세 + HTML/CSV</td>
+<td>성과보고 탭</td>
+<td>강사·관리자</td>
+</tr>
+<tr>
+<td><strong>성과보고 기준 확정</strong> (취업률 분모·인정 고용형태·기관명)</td>
+<td>관리자 &gt; 설정 &gt; 「성과보고 기준」</td>
+<td><strong>관리자만</strong></td>
+</tr>
+<tr>
+<td>업체 등록</td>
+<td>관리자 &gt; 기업 탭, 또는 공동훈련센터(팀장·담당)가 직접 「업체 등록」 탭에서</td>
+<td>관리자·공동훈련센터(팀장·담당)</td>
+</tr>
+</tbody></table>
+<p><strong>원칙</strong></p>
+<ul>
+<li>취업은 <strong>관리자 검증을 마친 건만</strong> 취업률에 포함됩니다. 등록만 된 건은 「검증 대기」입니다.</li>
+<li>취업자 등록 경로가 여러 개(학생 상세 / 업체현황 빠른등록 / 공동훈련센터 등록)여도 <strong>확정 권한은 항상 관리자뿐</strong>입니다. 등록 기능 자체에 검증 항목이 없어 다른 역할은 아무리 시도해도 확정할 수 없습니다.</li>
+<li><strong>자료 미입력·연락불가는 미취업이 아닙니다.</strong> 미취업은 확인 후 명시한 경우만 분류됩니다.</li>
+<li>기관 취업 인정기준을 확인해 「기관 기준 확인 완료」를 체크하기 전까지 모든 보고서에 **「자료보완 필요」**가 표시됩니다.</li>
+<li>보고서·DASHBOARD 수치는 하나의 원본(<code>cgd_final_report</code>)에서만 나옵니다. 기준일과 생성일이 항상 표시됩니다.</li>
+<li>학생 순위·취업 가능성 예측·출석 기반 취업 판정·자동 취업 확정·자동 지원은 하지 않습니다. 목록은 항상 번호순입니다.</li>
+<li>90일 성과 기준일 = 수료일 + 90일 (9/22 수료 → 12/21). 사후관리는 수료일 +30일(10/22), +90일(12/21).</li>
+</ul>
+<h2>2-2. 공동훈련센터 계정</h2>
+<p>이 시스템은 <strong>공동훈련센터 팀장·담당(<code>center_lead</code>) 계정만</strong> 열람할 수 있습니다. 회원 탭에서 역할을 <code>center_lead</code>로 지정하면 DASHBOARD·성과보고·주차현황·업체현황 열람 + 업체 등록 + 취업자 등록(등록만, 확정은 여전히 관리자만)이 가능합니다. 그 외 인원은 이 시스템으로 직접 보지 않습니다.</p>
+<p>자세한 안내는 <code>매뉴얼-공동훈련센터.md</code> 참고.</p>
+<h2>3. 핵심 운영 작업</h2>
+<h3>3-1. 학생 계정 연결</h3>
+<p>학생이 <strong>본인 이메일로 1회 로그인</strong>하면 계정이 생깁니다. 그 뒤 SQL Editor에서:</p>
+<pre><code class="language-sql">select link_student(&#39;학생이메일@example.com&#39;, &#39;S07&#39;);
+</code></pre>
+<p>여러 명 한 번에:</p>
+<pre><code class="language-sql">select link_student(email, code) from (values
+  (&#39;a@x.com&#39;,&#39;S01&#39;), (&#39;b@x.com&#39;,&#39;S02&#39;)   -- 로그인한 학생만
+) v(email, code);
+</code></pre>
+<p>→ 연결되면 그 학생은 다음 로그인부터 <strong>학생 화면</strong>으로 들어갑니다.
+→ <strong>회원 탭</strong>에서 로그인한 계정을 수시로 확인하고 연결하세요.</p>
+<h3>3-2. 강사·공동훈련센터 계정 추가</h3>
+<p>새 계정이 1회 로그인 → <strong>회원 탭</strong>에서 역할을 <code>instructor</code>/<code>center_lead</code> 중 지정·저장.</p>
+<h3>3-3. 새 기수 시작</h3>
+<p>강사 화면 상단바 → <strong>+ 새 기수</strong> → 이름·수료일·대상인원 입력.
+학생은 <strong>명단 탭</strong>에서 CSV/JSON 붙여넣기로 일괄 등록(번호 부여).</p>
+<h2>4. 정기 관리</h2>
+<ul>
+<li><strong>백업</strong>: Supabase 대시보드 → Database → Backups (무료 플랜 7일 보관). 중요 시점엔 Table Editor → Export CSV 수동 백업</li>
+<li><strong>현황 보고</strong>: 성과보고 탭의 HTML/CSV 내보내기 (번호 기준, 실명 없음)</li>
+<li><strong>가중치 튜닝</strong>: 실제 매칭 결과가 감과 다르면 설정 탭에서 조정</li>
+</ul>
+<h2>5. AI 기능 켜기 (선택)</h2>
+<p>현재 AI 3종(공고분석·코치·포폴평가)은 <strong>미배포</strong>. 켜려면:</p>
+<pre><code class="language-bash">cd 취업시스템-web
+npx supabase login
+npx supabase secrets set ANTHROPIC_API_KEY=sk-ant-xxxx --project-ref hpzpojvywpqputbzfwqo
+npx supabase functions deploy job-analyze       --project-ref hpzpojvywpqputbzfwqo
+npx supabase functions deploy career-coach      --project-ref hpzpojvywpqputbzfwqo
+npx supabase functions deploy portfolio-analyze --project-ref hpzpojvywpqputbzfwqo
+</code></pre>
+<p>Anthropic API는 Claude 구독과 별개 유료(기수당 대략 ₩1천~7천, 신규 계정 $5 무료크레딧).</p>
+<h2>6. 문제 대응</h2>
+<table>
+<thead>
+<tr>
+<th>증상</th>
+<th>원인 / 조치</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>&quot;계정 준비 중&quot; 화면</td>
+<td><code>profiles</code>에 역할 미지정 → 회원 탭에서 역할 부여 또는 link_student</td>
+</tr>
+<tr>
+<td>로그인이 안 됨</td>
+<td>매직링크를 <strong>다른 브라우저</strong>에서 클릭함 → 앱 쓸 브라우저에서 다시 로그인</td>
+</tr>
+<tr>
+<td>AI 버튼 &quot;미설정&quot;</td>
+<td>Edge Function 미배포 (정상). 5번 참고</td>
+</tr>
+<tr>
+<td>매직링크 메일 안 옴</td>
+<td>스팸함 확인. Supabase 무료 플랜은 시간당 발송 제한 있음 → 잠시 후 재시도</td>
+</tr>
+<tr>
+<td>스키마 재적용 필요</td>
+<td><code>supabase/_deploy_all.sql</code> 전체를 SQL Editor에 실행 (멱등, 데이터 보존)</td>
+</tr>
+<tr>
+<td>SQL Editor에서 &quot;Success&quot; 인데 실제로 반영 안 됨</td>
+<td>긴 SQL을 붙여넣을 때 중간이 잘린 경우가 있었음 — 실행 후 <code>select proname from pg_proc where proname=&#39;...&#39;</code> 같은 진단 쿼리로 반드시 재확인</td>
+</tr>
+</tbody></table>
+<h2>7. 시스템 구조 (참고)</h2>
+<ul>
+<li>백엔드: Supabase (Postgres + Auth 매직링크 + Storage)</li>
+<li>프론트: 정적 SPA, <code>cgd-career-app</code> 저장소 → GitHub Pages 배포</li>
+<li>마이그레이션: <code>supabase/migrations/0001~0027</code></li>
+<li>검증: <code>npm run validate</code> (340개 항목) · <code>npm run audit</code></li>
+</ul>
+</div>
+</div>
+</body>
+</html>
