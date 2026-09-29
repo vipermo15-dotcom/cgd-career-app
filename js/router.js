@@ -1,4 +1,5 @@
 import { getSession, getProfile, onAuthChange } from "./auth.js";
+import { recordLogin } from "./data.js";
 import { renderLogin } from "./views/login.js";
 import { renderInstructor } from "./views/instructor.js";
 import { renderStudent } from "./views/student.js";
@@ -47,6 +48,14 @@ export async function route() {
     document.getElementById("so").onclick = () => import("./auth.js").then(m => m.signOut());
     return;
   }
+
+  // 접속 횟수 기록 — 새 브라우저 세션(탭을 새로 열거나 브라우저를 닫았다 열면)당 1회만, 화면 이동마다 늘지 않음
+  try {
+    if (!sessionStorage.getItem("cgd_login_logged")) {
+      sessionStorage.setItem("cgd_login_logged", "1");
+      recordLogin().catch(() => {});
+    }
+  } catch { /* 세션스토리지 접근 불가 시 조용히 건너뜀 — 화면 진입 자체는 막지 않음 */ }
 
   // 열람 전용(viewer) 역할은 더 이상 이 시스템에 접근할 수 없음(공동훈련센터 팀장·담당만 열람 가능)
   if (profile.role === "viewer") {

@@ -75,13 +75,15 @@ async function paintUsers(pane) {
       <div class="row arow"><input id="u-q" type="search" placeholder="이메일로 검색" aria-label="회원 검색" style="max-width:320px">
         <span class="muted small" id="u-count">${rows.length}명</span></div>
       <div class="scroll-x"><table class="tbl-cards">
-      <tr><th>이메일</th><th>역할</th><th>학생번호</th><th>가입</th><th></th></tr>
+      <tr><th>이메일</th><th>역할</th><th>학생번호</th><th>가입</th><th>접속 횟수</th><th>마지막 접속</th><th></th></tr>
       ${rows.map((u) => `
         <tr data-uid="${u.user_id}">
           <td class="tc-title">${esc(u.email)}</td>
           <td data-label="역할"><select class="u-role">${roleOpt(u.role)}</select></td>
           <td data-label="학생번호">${esc(u.student_code || "") || "—"}</td>
           <td class="small" data-label="가입">${esc((u.created_at || "").slice(0, 10))}</td>
+          <td data-label="접속 횟수">${u.login_count ?? 0}${!u.login_count ? ` <span class="muted small">(미접속)</span>` : ""}</td>
+          <td class="small" data-label="마지막 접속">${u.last_login_at ? esc(u.last_login_at.slice(0, 16).replace("T", " ")) : `<span class="muted">—</span>`}</td>
           <td class="tc-act"><button class="u-save ghost" type="button">저장</button> <span class="msg u-msg"></span></td>
         </tr>`).join("")}
     </table></div>

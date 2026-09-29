@@ -732,3 +732,9 @@ export async function docExists(studentId, title) {
   if (error) throw error;
   return (data || []).length > 0;
 }
+
+/* ---------- STEP 19: 사용자별 접속 횟수 ---------- */
+export async function recordLogin() {
+  const { error } = await supabase.rpc("cgd_record_login");
+  if (error) throw error;
+}
