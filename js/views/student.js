@@ -9,6 +9,7 @@ import {
   EMPLOYMENT_TYPES, GRADE_CLASS,
 } from "../data.js";
 import { renderInterviews } from "./ops.js";
+import { renderMyCareer } from "./career.js";
 import { renderSkillBlock } from "../skillblock.js";
 import { renderCoach } from "../coach.js";
 import { renderPortfolioReview } from "../pfreview.js";
@@ -87,6 +88,11 @@ async function paint(pane, studentId) {
       <ol class="stepper">${stepper}</ol>
       <p>상태: <span class="badge">${esc(STATUS[s.status] || s.status)}</span>
         <span class="muted small">단계·상태는 담당 강사가 관리합니다.</span></p>
+    </div>
+
+    <div class="card">
+      <h2>내 진로지도 <span class="muted small">담당 강사가 정리한 직무 방향·추천 취업처·자료</span></h2>
+      <div id="my-career"></div>
     </div>
 
     <div class="card">
@@ -204,6 +210,7 @@ async function paint(pane, studentId) {
 
     <div class="card"><h2>내 진행 이력</h2><ul class="log">${log}</ul></div>`;
 
+  renderMyCareer(pane.querySelector("#my-career"));
   renderSkillBlock(pane.querySelector("#skillblock"), studentId, { canVerify: false, canEditExperience: false });
   renderPortfolioReview(pane.querySelector("#pfreviewbox"), studentId, { reviewerAs: "self" });
   renderCoach(pane.querySelector("#coachbox"), studentId);

@@ -7,6 +7,8 @@ import {
   MATCH_WEIGHT_KEYS, READINESS_WEIGHT_KEYS,
 } from "../data.js";
 import { paintControlTower, paintEmployerDirectory } from "./ops.js";
+import { paintBulkImport } from "./career.js";
+import { listCohorts } from "../data.js";
 
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) =>
   ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -23,7 +25,7 @@ export function renderAdmin(el, { session }) {
     </header>
     <nav class="tabs with-icons" aria-label="관리자 메뉴">
       ${tabBtn("control", "DASHBOARD", true)}${tabBtn("users", "회원")}${tabBtn("employer", "업체현황")}${tabBtn("companies", "기업")}
-      ${tabBtn("taxonomy", "기준데이터")}${tabBtn("config", "설정")}${tabBtn("ai", "AI 로그")}
+      ${tabBtn("taxonomy", "기준데이터")}${tabBtn("config", "설정")}${tabBtn("ai", "AI 로그")}${tabBtn("bulk", "자료적재")}
     </nav>
     <section id="pane">${skeleton(4)}</section>`;
   el.querySelector("#so").onclick = signOut;
@@ -32,7 +34,8 @@ export function renderAdmin(el, { session }) {
   const show = (n) => {
     markTab(tabs, n);
     ({ control: () => paintControlTower(pane, null, { onNavigate: nav }), users: paintUsers, employer: () => paintEmployerDirectory(pane, null, { canRegister: true }),
-       companies: paintCompanies, taxonomy: paintTaxonomy, config: paintConfig, ai: paintAi }[n])(pane);
+       companies: paintCompanies, taxonomy: paintTaxonomy, config: paintConfig, ai: paintAi,
+       bulk: async () => { const list = await listCohorts(); paintBulkImport(pane, list[0]?.id || null); } }[n])(pane);
   };
   // 종합관제판 카드 클릭 → 관리자 화면에 있는 탭(업체현황)은 바로 전환, 학생별 상세·성과보고·사후관리는 강사 화면으로 이동
   const nav = (tab, opts) => {

@@ -244,8 +244,11 @@ export const TAB_ICONS = {
   followup: '<rect x="5" y="4" width="14" height="17" rx="3"/><path d="M9 4h6v3H9z"/><path d="M9 14l2 2 4-4"/>',
   report: '<path d="M6 3h8l4 4v14H6z"/><path d="M9 12h6M9 16h6"/>',
   postings: BAG, roster: '<path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 20h16"/>',
+  career: '<circle cx="12" cy="8" r="3.2"/><path d="M5 20c0-3.6 3-6 7-6s7 2.4 7 6"/><path d="M18 5l1 1 2-2"/>',
+  postcomp: '<path d="M5 4h14v16H5z"/><path d="M9 9h6M9 13h6M9 17h3"/><path d="M16 3v3"/>',
   // 공동훈련센터(팀장·담당)
   register: '<path d="M12 5v14M5 12h14"/>',
+  bulk: '<path d="M12 3v12"/><path d="M7 8l5-5 5 5"/><path d="M5 21h14"/>',
 };
 export function tabBtn(key, label, on = false) {
   return `<button data-tab="${key}" ${on ? 'class="on" aria-current="page"' : 'aria-current="false"'}>` +

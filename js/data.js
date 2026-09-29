@@ -595,11 +595,11 @@ export const getEmployerDirectory = (from = null, to = null, cohort = null) =>
 
 export async function listMentorNotes(studentId) {
   const { data, error } = await supabase.from("mentor_notes")
-    .select("id, note, created_at, author").eq("student_id", studentId).order("created_at", { ascending: false });
+    .select("id, note, created_at, author, note_type, follow_up_due").eq("student_id", studentId).order("created_at", { ascending: false });
   if (error) throw error; return data;
 }
-export async function addMentorNote(studentId, note) {
-  const { error } = await supabase.from("mentor_notes").insert({ student_id: studentId, note });
+export async function addMentorNote(studentId, note, note_type = "기타", follow_up_due = null) {
+  const { error } = await supabase.from("mentor_notes").insert({ student_id: studentId, note, note_type, follow_up_due: follow_up_due || null });
   if (error) throw error;
 }
 export async function deleteMentorNote(id) {
@@ -648,4 +648,87 @@ export const CENTER_EMPLOYMENT_TYPES = ["정규직", "계약직", "인턴"];
 export async function ackPrivacyPolicy(version = "v1") {
   const { error } = await supabase.rpc("cgd_ack_privacy_policy", { p_version: version });
   if (error) throw error;
+}
+
+/* ---------- STEP 18: 진로지도(직무 중심) · 수료 후 진도지도 ---------- */
+export const PORTFOLIO_STATUS = ["미착수", "작업중", "보완필요", "완성"];
+export const REC_STATUS = ["추천", "지원준비", "지원완료", "제외"];
+export const DOC_KIND_CAREER = ["진로지도", "추천취업처", "포트폴리오지도"];
+export const NOTE_TYPES = ["진도지도", "취업상담", "사후관리", "기타"];
+const CAREER_BUCKET = "career-docs";
+
+export const getCareerByJob = (cohort = null) => rpc("cgd_career_by_job", { p_cohort: cohort });
+export const getCareerCenterView = (cohort = null) => rpc("cgd_career_center_view", { p_cohort: cohort });
+export const getPostCompletionBoard = (cohort = null) => rpc("cgd_post_completion_board", { p_cohort: cohort });
+export const getMyCareer = () => rpc("cgd_my_career", {});
+
+export async function getCareerProfile(studentId) {
+  const { data, error } = await supabase.from("career_profiles").select("*").eq("student_id", studentId).maybeSingle();
+  if (error) throw error; return data;
+}
+export async function saveCareerProfile(studentId, fields) {
+  const { data: u } = await supabase.auth.getUser();
+  const row = { ...fields, student_id: studentId, updated_by: u?.user?.id || null };
+  const { error } = await supabase.from("career_profiles").upsert(row, { onConflict: "student_id" });
+  if (error) throw error;
+}
+export async function listCareerRecs(studentId) {
+  const { data, error } = await supabase.from("career_recommendations").select("*")
+    .eq("student_id", studentId).order("priority").order("deadline", { nullsFirst: false });
+  if (error) throw error; return data;
+}
+export async function saveCareerRec(row) {
+  const { id, ...rest } = row;
+  const q = id ? supabase.from("career_recommendations").update(rest).eq("id", id)
+                : supabase.from("career_recommendations").insert(rest);
+  const { error } = await q; if (error) throw error;
+}
+export async function deleteCareerRec(id) {
+  const { error } = await supabase.from("career_recommendations").delete().eq("id", id);
+  if (error) throw error;
+}
+export async function listCareerDocs(studentId) {
+  const { data, error } = await supabase.from("career_documents").select("*")
+    .eq("student_id", studentId).order("doc_date", { ascending: false, nullsFirst: false });
+  if (error) throw error; return data;
+}
+export async function addCareerDoc({ student_id, kind, title, doc_date, url, file, visible_to_student = true }) {
+  let storage_path = null;
+  if (file) {
+    const ext = (file.name.split(".").pop() || "bin").toLowerCase().replace(/[^a-z0-9]/g, "") || "bin";
+    storage_path = `${student_id}/doc-${Date.now()}.${ext}`;      // 저장소 키는 영문·숫자만(한글 파일명 불가) — 화면에는 title 이 보임
+    const up = await supabase.storage.from(CAREER_BUCKET).upload(storage_path, file, { upsert: false });
+    if (up.error) throw up.error;
+  }
+  const { error } = await supabase.from("career_documents").insert({
+    student_id, kind, title, doc_date: doc_date || null, storage_path, url: url || null, visible_to_student });
+  if (error) { if (storage_path) await supabase.storage.from(CAREER_BUCKET).remove([storage_path]); throw error; }
+}
+export async function setCareerDocVisible(id, visible) {
+  const { error } = await supabase.from("career_documents").update({ visible_to_student: !!visible }).eq("id", id);
+  if (error) throw error;
+}
+export async function deleteCareerDoc(doc) {
+  if (doc.storage_path) await supabase.storage.from(CAREER_BUCKET).remove([doc.storage_path]);
+  const { error } = await supabase.from("career_documents").delete().eq("id", doc.id);
+  if (error) throw error;
+}
+export async function careerDocUrl(doc) {
+  if (doc.url) return doc.url;
+  const { data, error } = await supabase.storage.from(CAREER_BUCKET).createSignedUrl(doc.storage_path, 3600);
+  if (error) throw error; return data.signedUrl;
+}
+
+/* ---------- STEP 18 일괄 적재 도구(일회용): 기수 학생을 이름으로 찾기 ---------- */
+export async function findStudentByName(cohortId, name) {
+  const { data, error } = await supabase.from("students")
+    .select("id, code, display_name").eq("cohort_id", cohortId).eq("display_name", name);
+  if (error) throw error;
+  return data;
+}
+export async function docExists(studentId, title) {
+  const { data, error } = await supabase.from("career_documents")
+    .select("id").eq("student_id", studentId).eq("title", title).limit(1);
+  if (error) throw error;
+  return (data || []).length > 0;
 }

@@ -4,6 +4,7 @@
 import { signOut } from "../auth.js";
 import { skeleton, renderError, tabBtn, markTab, privacyAckDialog } from "../ui.js";
 import { listCohorts, ackPrivacyPolicy } from "../data.js";
+import { paintCenterCareer } from "./career.js";
 import { paintReport, paintWeekly, paintControlTower, paintEmployerDirectory, paintCompanyRegister } from "./ops.js";
 
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) =>
@@ -46,7 +47,7 @@ export async function renderViewer(el, { session, profile }) {
     </header>
     <div id="cohortbar" class="cohortbar"></div>
     <nav class="tabs with-icons" aria-label="공동훈련센터 메뉴">
-      ${tabBtn("control", "DASHBOARD", true)}${tabBtn("report", "성과보고")}${tabBtn("weekly", "주차현황")}${tabBtn("employer", "업체현황")}${tabBtn("register", "업체 등록")}
+      ${tabBtn("control", "DASHBOARD", true)}${tabBtn("report", "성과보고")}${tabBtn("weekly", "주차현황")}${tabBtn("employer", "업체현황")}${tabBtn("career", "진로지도")}${tabBtn("register", "업체 등록")}
     </nav>
     <section id="pane">${skeleton(4)}</section>`;
   el.querySelector("#so").onclick = signOut;
@@ -60,10 +61,11 @@ export async function renderViewer(el, { session, profile }) {
     if (name === "control") paintControlTower(pane, cohort, { onNavigate: nav, audience: "center" });
     if (name === "report") paintReport(pane, cohort);
     if (name === "weekly") paintWeekly(pane, cohort, { readOnly: true });
+    if (name === "career") paintCenterCareer(pane, cohort);
     if (name === "employer") paintEmployerDirectory(pane, cohort, { canRegister: true, useRpc: true });
   };
   // 학생 상세로는 이동하지 않고, 이 화면이 가진 탭으로만 이동
-  const navTabs = ["control", "report", "weekly", "employer", "register"];
+  const navTabs = ["control", "report", "weekly", "employer", "career", "register"];
   const nav = (tab) => { if (navTabs.includes(tab)) show(tab); };
   tabs.forEach((b) => (b.onclick = () => show(b.dataset.tab)));
   let list = [];

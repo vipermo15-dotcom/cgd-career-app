@@ -8,7 +8,7 @@ import {
   listFollowups, saveFollowup, exportReportHtml, exportReportCsv,
   listInterviews, saveInterview, deleteInterview, uploadInterviewDoc, deleteInterviewDoc, signedUrl,
   verifyEmployment, setEmploymentCare, setOutcomeStatus, setCompletionStatus, getEmployment,
-  getControlTower, getEmployerDirectory, listMentorNotes, addMentorNote, deleteMentorNote,
+  getControlTower, getEmployerDirectory, listMentorNotes, addMentorNote, deleteMentorNote, NOTE_TYPES,
   getTopMatches, listPortfolioReviews, setStudentGithubUrl, setEmployment,
   listCompanies, registerCompany, registerEmployment, getPlacementSplit, addCenterNote, CENTER_EMPLOYMENT_TYPES,
   OUTCOME_LABEL, INTERVIEW_RESULT, DOC_KIND, RETENTION, FOLLOWUP_STATUS, STAGES, GRADE_CLASS,
@@ -762,18 +762,20 @@ export async function renderMentorNotes(host, { studentId, canWrite }) {
     try { rows = await listMentorNotes(studentId); }
     catch (e) { host.innerHTML = `<p class="msg err">${esc(e.message)}</p>`; return; }
     const list = rows.map((n) => `
-      <li data-id="${n.id}"><span class="muted small">${esc((n.created_at || "").slice(0, 16).replace("T", " "))}</span>
+      <li data-id="${n.id}"><span class="muted small">${esc((n.created_at || "").slice(0, 16).replace("T", " "))}${n.note_type && n.note_type !== "기타" ? ` · ${esc(n.note_type)}` : ""}${n.follow_up_due ? ` · 다음 확인 ${esc(n.follow_up_due)}` : ""}</span>
         <div>${esc(n.note)}</div>${canWrite ? `<button class="ghost mn-del" type="button" data-id="${n.id}">삭제</button>` : ""}</li>`).join("")
       || `<li class="muted">등록된 특이사항이 없습니다.</li>`;
     host.innerHTML = `<ul class="log feed">${list}</ul>
-      ${canWrite ? `<div class="row"><input id="mn-text" placeholder="특이사항 메모 (실명·연락처 입력 금지)">
+      ${canWrite ? `<div class="row"><input id="mn-text" placeholder="특이사항 메모 (실명·연락처 입력 금지)" style="flex:1;min-width:220px">
+        <select id="mn-type" style="width:auto">${NOTE_TYPES.map((t) => `<option>${t}</option>`).join("")}</select>
+        <label class="small">다음 확인일 <input id="mn-due" type="date" style="width:auto"></label>
         <button id="mn-add" type="button">등록</button><span id="mn-msg" class="msg"></span></div>` : ""}`;
     if (canWrite) {
       host.querySelector("#mn-add").onclick = async (e) => {
         const t = host.querySelector("#mn-text"), m = host.querySelector("#mn-msg");
         if (!t.value.trim()) return setMsg(m, "내용을 입력하세요", "err");
         await withBusy(e.target, async () => {
-          try { await addMentorNote(studentId, t.value.trim()); toast("등록했어요."); paint(); }
+          try { await addMentorNote(studentId, t.value.trim(), host.querySelector("#mn-type").value, host.querySelector("#mn-due").value || null); toast("등록했어요."); paint(); }
           catch (err) { setMsg(m, err.message, "err"); }
         });
       };

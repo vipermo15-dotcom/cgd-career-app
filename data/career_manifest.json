@@ -1,0 +1,786 @@
+[
+ {
+  "student": "김규연",
+  "path": "02-김규연/김규연_취업준비_종합자료_0915.html",
+  "kind": "진로지도",
+  "title": "취업준비 종합자료 (HTML)",
+  "doc_date": "2026-09-15",
+  "visible": true
+ },
+ {
+  "student": "김규연",
+  "path": "02-김규연/김규연_랜딩페이지전략_진로지도.html",
+  "kind": "진로지도",
+  "title": "랜딩페이지 전략 진로지도",
+  "doc_date": null,
+  "visible": true
+ },
+ {
+  "student": "김규연",
+  "path": "02-김규연/김규연_추천채용공고_멘토피드백_2026-09-11.pdf",
+  "kind": "추천취업처",
+  "title": "추천 채용공고 10선 & 멘토 피드백",
+  "doc_date": "2026-09-11",
+  "visible": true
+ },
+ {
+  "student": "김규연",
+  "path": "02-김규연/김규연_포트폴리오_멘토피드백_2026.html",
+  "kind": "포트폴리오지도",
+  "title": "포트폴리오 멘토 피드백 (진단 61/100) (마스킹본)",
+  "doc_date": "2026-09-11",
+  "visible": true
+ },
+ {
+  "student": "김규연",
+  "path": "02-김규연/김규연_교육생_EATFORREST_V6_디자인지침_멘토링_피드백_전체수정본.pdf",
+  "kind": "포트폴리오지도",
+  "title": "EATFORREST 디자인지침 멘토링 피드백 (전체수정본)",
+  "doc_date": null,
+  "visible": true
+ },
+ {
+  "student": "김규연",
+  "path": "02-김규연/김규연_랜딩페이지컨셉_개정판.html",
+  "kind": "포트폴리오지도",
+  "title": "랜딩페이지 컨셉 개정판",
+  "doc_date": null,
+  "visible": true
+ },
+ {
+  "student": "김규연",
+  "path": "02-김규연/김규연_자소서_질문지_2026.txt",
+  "kind": "포트폴리오지도",
+  "title": "자소서 질문지 5문항",
+  "doc_date": "2026-09-15",
+  "visible": true
+ },
+ {
+  "student": "김나연",
+  "path": "03-김나연/골프가이즈_면접키트_김나연.html",
+  "kind": "진로지도",
+  "title": "골프가이즈 면접 키트(전략+Q&A)",
+  "doc_date": "2026-08-13",
+  "visible": true
+ },
+ {
+  "student": "김나연",
+  "path": "03-김나연/골프가이즈_면접전략.pdf",
+  "kind": "진로지도",
+  "title": "골프가이즈 면접 전략",
+  "doc_date": "2026-08-13",
+  "visible": true
+ },
+ {
+  "student": "김나연",
+  "path": "03-김나연/골프가이즈_면접대비_QA.pdf",
+  "kind": "진로지도",
+  "title": "골프가이즈 면접 대비 Q&A",
+  "doc_date": "2026-08-13",
+  "visible": true
+ },
+ {
+  "student": "김나연",
+  "path": "03-김나연/골프가이즈_포트폴리오_작업가이드.pdf",
+  "kind": "포트폴리오지도",
+  "title": "골프가이즈 맞춤 포트폴리오 작업 가이드",
+  "doc_date": "2026-08-12",
+  "visible": true
+ },
+ {
+  "student": "김나연",
+  "path": "03-김나연/Kim Nayeon Portfolio (배포용).html",
+  "kind": "포트폴리오지도",
+  "title": "포트폴리오(배포용)",
+  "doc_date": null,
+  "visible": true
+ },
+ {
+  "student": "김나연",
+  "path": "03-김나연/for_GOLFGUYS_제안.pdf",
+  "kind": "포트폴리오지도",
+  "title": "for GOLFGUYS 제안 페이지 시안",
+  "doc_date": "2026-08-12",
+  "visible": true
+ },
+ {
+  "student": "김나연",
+  "path": "03-김나연/영상페이지_레이아웃틀.pdf",
+  "kind": "포트폴리오지도",
+  "title": "영상 페이지 레이아웃 틀",
+  "doc_date": "2026-08-12",
+  "visible": true
+ },
+ {
+  "student": "김나연",
+  "path": "03-김나연/전달사항_김나연_씨노스튜디오.html",
+  "kind": "포트폴리오지도",
+  "title": "씨노스튜디오 산학협력 전달사항",
+  "doc_date": "2026-07-07",
+  "visible": true
+ },
+ {
+  "student": "김민지",
+  "path": "04-김민지/김민지_교육생배포용_병원마케팅_진도지도.html",
+  "kind": "진로지도",
+  "title": "병원 마케팅 취업 진도지도",
+  "doc_date": "2026-09-01",
+  "visible": true
+ },
+ {
+  "student": "김민지",
+  "path": "04-김민지/김민지_병원마케팅_포트폴리오고도화.md",
+  "kind": "포트폴리오지도",
+  "title": "병원 마케팅 포트폴리오 고도화 가이드",
+  "doc_date": "2026-09-01",
+  "visible": true
+ },
+ {
+  "student": "김민지",
+  "path": "04-김민지/실행가이드_회사소개서_씨엘에스_김민지.html",
+  "kind": "포트폴리오지도",
+  "title": "씨엘에스 회사소개서 실행가이드",
+  "doc_date": null,
+  "visible": true
+ },
+ {
+  "student": "김승희",
+  "path": "05-김승희/김승희_진로지도자료.html",
+  "kind": "진로지도",
+  "title": "김승희 진로지도자료 (경력전환·직무 트랙·로드맵)",
+  "doc_date": "2026-08-19",
+  "visible": true
+ },
+ {
+  "student": "김승희",
+  "path": "05-김승희/김승희_채용공고분석_포트폴리오전략.md",
+  "kind": "추천취업처",
+  "title": "채용공고 매칭 분석·포트폴리오 전략",
+  "doc_date": "2026-07-22",
+  "visible": true
+ },
+ {
+  "student": "김승희",
+  "path": "05-김승희/김승희_멘토피드백_0921.pdf",
+  "kind": "포트폴리오지도",
+  "title": "포트폴리오 멘토 피드백 (진단 49/100)",
+  "doc_date": "2026-09-21",
+  "visible": true
+ },
+ {
+  "student": "김승희",
+  "path": "05-김승희/김승희_실행체크리스트_0921.md",
+  "kind": "포트폴리오지도",
+  "title": "포트폴리오 보완 실행 체크리스트",
+  "doc_date": "2026-09-21",
+  "visible": true
+ },
+ {
+  "student": "김승희",
+  "path": "05-김승희/김승희_확인질문지_0921.md",
+  "kind": "포트폴리오지도",
+  "title": "확인 질문지",
+  "doc_date": "2026-09-21",
+  "visible": true
+ },
+ {
+  "student": "김아빈",
+  "path": "06-김아빈/kimabin_portfolio_career_guidance_v1.pdf",
+  "kind": "진로지도",
+  "title": "포트폴리오·진로 지도 종합 (v1.1)",
+  "doc_date": "2026-09-15",
+  "visible": true
+ },
+ {
+  "student": "김아빈",
+  "path": "06-김아빈/채용공고_매칭분석.pdf",
+  "kind": "추천취업처",
+  "title": "채용공고 매칭분석",
+  "doc_date": "2026-09-16",
+  "visible": true
+ },
+ {
+  "student": "김아빈",
+  "path": "06-김아빈/포트폴리오_피드백.pdf",
+  "kind": "포트폴리오지도",
+  "title": "포트폴리오 피드백",
+  "doc_date": "2026-09-15",
+  "visible": true
+ },
+ {
+  "student": "김아빈",
+  "path": "06-김아빈/스타일가이드_초안_AUREL.pdf",
+  "kind": "포트폴리오지도",
+  "title": "AUREL 스타일가이드 초안",
+  "doc_date": "2026-09-15",
+  "visible": true
+ },
+ {
+  "student": "김아빈",
+  "path": "06-김아빈/전개도_초안_멍데이.pdf",
+  "kind": "포트폴리오지도",
+  "title": "멍데이 전개도 초안",
+  "doc_date": "2026-09-15",
+  "visible": true
+ },
+ {
+  "student": "김아빈",
+  "path": "06-김아빈/검증설문_스크립트.md",
+  "kind": "포트폴리오지도",
+  "title": "검증 설문 스크립트",
+  "doc_date": "2026-09-15",
+  "visible": true
+ },
+ {
+  "student": "박민서",
+  "path": "07-박민서/박민서_진로지도자료.md",
+  "kind": "진로지도",
+  "title": "박민서 진로지도 자료 (프로필·핵심 경험·트랙 매핑)",
+  "doc_date": "2026-08-25",
+  "visible": true
+ },
+ {
+  "student": "박민서",
+  "path": "07-박민서/채용공고분석-박민서-20260916.pdf",
+  "kind": "추천취업처",
+  "title": "채용공고 분석 10건",
+  "doc_date": "2026-09-16",
+  "visible": true
+ },
+ {
+  "student": "박민서",
+  "path": "07-박민서/PRD-병원교육영상-포트폴리오카테고리-20260915.pdf",
+  "kind": "포트폴리오지도",
+  "title": "병원·교육영상 포트폴리오 카테고리 PRD",
+  "doc_date": "2026-09-15",
+  "visible": true
+ },
+ {
+  "student": "박민서",
+  "path": "07-박민서/박민서_랜딩페이지_커스터마이징가이드.md",
+  "kind": "포트폴리오지도",
+  "title": "랜딩페이지 커스터마이징 가이드",
+  "doc_date": null,
+  "visible": true
+ },
+ {
+  "student": "박민서",
+  "path": "07-박민서/ParkFrame_portfolio_통합본.html",
+  "kind": "포트폴리오지도",
+  "title": "ParkFrame 포트폴리오 통합본(3트랙 전환)",
+  "doc_date": null,
+  "visible": true
+ },
+ {
+  "student": "박민서",
+  "path": "07-박민서/ParkFrame_A_cut.html",
+  "kind": "포트폴리오지도",
+  "title": "ParkFrame 시안 A(CUT)",
+  "doc_date": null,
+  "visible": true
+ },
+ {
+  "student": "박민서",
+  "path": "07-박민서/ParkFrame_B_brief.html",
+  "kind": "포트폴리오지도",
+  "title": "ParkFrame 시안 B(BRIEF)",
+  "doc_date": null,
+  "visible": true
+ },
+ {
+  "student": "박세은",
+  "path": "08-박세은/준비전략_진로방향피드백.pdf",
+  "kind": "진로지도",
+  "title": "준비전략 & 진로방향 피드백 (정석준입시연구소)",
+  "doc_date": "2026-09-15",
+  "visible": true
+ },
+ {
+  "student": "박세은",
+  "path": "08-박세은/박세은_진로지도_우선지원3개사_멘토링_가이드_최종.pdf",
+  "kind": "진로지도",
+  "title": "우선지원 3개사 진로 가이드 & 멘토링 피드백",
+  "doc_date": "2026-09-10",
+  "visible": true
+ },
+ {
+  "student": "박세은",
+  "path": "08-박세은/박세은_추천취업처_기업별_지원전략_멘토피드백.pdf",
+  "kind": "추천취업처",
+  "title": "추천 취업처 기업별 지원 전략 & 멘토 피드백",
+  "doc_date": "2026-09-10",
+  "visible": true
+ },
+ {
+  "student": "박세은",
+  "path": "08-박세은/채용공고기반_포트폴리오구성_멘토피드백.pdf",
+  "kind": "추천취업처",
+  "title": "채용공고 기반 포트폴리오 구성 멘토 피드백",
+  "doc_date": null,
+  "visible": true
+ },
+ {
+  "student": "박세은",
+  "path": "08-박세은/멘토피드백_씨앤에이에듀.pdf",
+  "kind": "포트폴리오지도",
+  "title": "씨앤에이에듀 멘토 피드백 (진단 52/100)",
+  "doc_date": "2026-09-21",
+  "visible": true
+ },
+ {
+  "student": "박세은",
+  "path": "08-박세은/교육생배포_지원실행가이드_씨앤에이에듀.pdf",
+  "kind": "포트폴리오지도",
+  "title": "씨앤에이에듀 지원 실행 가이드",
+  "doc_date": "2026-09-21",
+  "visible": true
+ },
+ {
+  "student": "박세은",
+  "path": "08-박세은/박세은_교육생_포트폴리오_V6_단계별_멘토링_피드백.pdf",
+  "kind": "포트폴리오지도",
+  "title": "포트폴리오 V6 단계별 멘토링 피드백",
+  "doc_date": null,
+  "visible": true
+ },
+ {
+  "student": "박세은",
+  "path": "08-박세은/박세은_포폴구성전략_최신본.pdf",
+  "kind": "포트폴리오지도",
+  "title": "포폴 구성 전략(최신본)",
+  "doc_date": null,
+  "visible": true
+ },
+ {
+  "student": "박세은",
+  "path": "08-박세은/박세은_확인질문지_씨앤에이에듀.txt",
+  "kind": "포트폴리오지도",
+  "title": "확인 질문지 (씨앤에이에듀)",
+  "doc_date": "2026-09-21",
+  "visible": true
+ },
+ {
+  "student": "박소현",
+  "path": "09-박소현/박소현_종합자료_통합본_20260916.pdf",
+  "kind": "진로지도",
+  "title": "종합 자료 통합본 (리서치·추천공고·진단·지원서 보완)",
+  "doc_date": "2026-09-16",
+  "visible": true
+ },
+ {
+  "student": "박소현",
+  "path": "09-박소현/박소현_진도지도_피드백.html",
+  "kind": "진로지도",
+  "title": "진도지도 피드백 (워크북 진행 현황·로드맵)",
+  "doc_date": null,
+  "visible": true
+ },
+ {
+  "student": "박소현",
+  "path": "09-박소현/박소현_디자인사무_추천채용공고_20260914.html",
+  "kind": "추천취업처",
+  "title": "디자인 사무직 추천 채용공고 5선",
+  "doc_date": "2026-09-14",
+  "visible": true
+ },
+ {
+  "student": "박소현",
+  "path": "09-박소현/박소현_러쉬코리아_지원서_보완문구_20260915.html",
+  "kind": "추천취업처",
+  "title": "러쉬코리아 지원서 보완 문구",
+  "doc_date": "2026-09-15",
+  "visible": true
+ },
+ {
+  "student": "박소현",
+  "path": "09-박소현/박소현_나머지4개공고_지원서보완_20260915.html",
+  "kind": "추천취업처",
+  "title": "나머지 4개 공고 지원서 보완",
+  "doc_date": "2026-09-15",
+  "visible": true
+ },
+ {
+  "student": "박소현",
+  "path": "09-박소현/박소현_포트폴리오_보완문구_초안_20260915.html",
+  "kind": "포트폴리오지도",
+  "title": "포트폴리오 보완 문구 초안 (진단 44/100)",
+  "doc_date": "2026-09-15",
+  "visible": true
+ },
+ {
+  "student": "박소현",
+  "path": "09-박소현/박소현_포폴구성전략.pdf",
+  "kind": "포트폴리오지도",
+  "title": "포폴 구성 전략",
+  "doc_date": null,
+  "visible": true
+ },
+ {
+  "student": "박소현",
+  "path": "09-박소현/박소현_빵아웃카페_상세페이지_와이어프레임_20260915.html",
+  "kind": "포트폴리오지도",
+  "title": "빵아웃카페 상세페이지 와이어프레임",
+  "doc_date": "2026-09-15",
+  "visible": true
+ },
+ {
+  "student": "박연",
+  "path": "10-박연/박연_취업지원_PRD_교육생작업자료.pdf",
+  "kind": "진로지도",
+  "title": "취업지원 PRD — 교육생 작업 이어가기 (STEP 1~7)",
+  "doc_date": "2026-09-11",
+  "visible": true
+ },
+ {
+  "student": "박연",
+  "path": "10-박연/박연_포트폴리오_피드백_배포자료.pdf",
+  "kind": "포트폴리오지도",
+  "title": "포트폴리오 피드백 배포자료 (진단 46/100·3관점·2트랙)",
+  "doc_date": "2026-09-15",
+  "visible": true
+ },
+ {
+  "student": "박연",
+  "path": "10-박연/박연_포트폴리오_진행현황_0915.pdf",
+  "kind": "포트폴리오지도",
+  "title": "포트폴리오 진행 현황",
+  "doc_date": "2026-09-15",
+  "visible": true
+ },
+ {
+  "student": "박연",
+  "path": "10-박연/박연_포트폴리오_첨삭노트.html",
+  "kind": "포트폴리오지도",
+  "title": "첨삭 노트",
+  "doc_date": "2026-09-15",
+  "visible": true
+ },
+ {
+  "student": "박연",
+  "path": "10-박연/박연_포트폴리오_첨삭_보완.html",
+  "kind": "포트폴리오지도",
+  "title": "첨삭 보완본 (Insight·Concept·Learning)",
+  "doc_date": "2026-09-15",
+  "visible": true
+ },
+ {
+  "student": "박연",
+  "path": "10-박연/박연_포트폴리오_확인질문지.html",
+  "kind": "포트폴리오지도",
+  "title": "확인 질문지 (10문항)",
+  "doc_date": "2026-09-15",
+  "visible": true
+ },
+ {
+  "student": "박연",
+  "path": "10-박연/박연_포트폴리오_워크플로우.md",
+  "kind": "포트폴리오지도",
+  "title": "포트폴리오 워크플로우",
+  "doc_date": null,
+  "visible": true
+ },
+ {
+  "student": "박홍덕",
+  "path": "11-박홍덕/박홍덕_취업진로지도_피드백_출력용.pdf",
+  "kind": "진로지도",
+  "title": "취업 진로지도 피드백 (직무 포지셔닝 1차 진단)",
+  "doc_date": "2026-08-27",
+  "visible": true
+ },
+ {
+  "student": "박홍덕",
+  "path": "11-박홍덕/박홍덕_추천_채용공고_링크포함_지원전략.pdf",
+  "kind": "추천취업처",
+  "title": "추천 채용공고 — 링크 포함 지원전략",
+  "doc_date": "2026-09-10",
+  "visible": true
+ },
+ {
+  "student": "박홍덕",
+  "path": "11-박홍덕/박홍덕_포트폴리오_정밀진단_멘토피드백.pdf",
+  "kind": "포트폴리오지도",
+  "title": "포트폴리오 정밀 진단 및 멘토 피드백 (리빌딩 가이드)",
+  "doc_date": null,
+  "visible": true
+ },
+ {
+  "student": "박홍덕",
+  "path": "11-박홍덕/박홍덕-취업 포트폴리오 제작 가이드 _ 컴퓨터그래픽실무자양성과정.pdf",
+  "kind": "포트폴리오지도",
+  "title": "취업 포트폴리오 제작 가이드 (컴그 워크북)",
+  "doc_date": null,
+  "visible": true
+ },
+ {
+  "student": "서두원",
+  "path": "12-서두원/서두원_자기주도형_구직활동_가이드.html",
+  "kind": "추천취업처",
+  "title": "자기주도형 구직활동 가이드 (공고 10곳 분석·기업 리서치)",
+  "doc_date": "2026-09-10",
+  "visible": true
+ },
+ {
+  "student": "서두원",
+  "path": "12-서두원/포트폴리오_자기주도가이드.pdf",
+  "kind": "포트폴리오지도",
+  "title": "포트폴리오 자기주도 제작 가이드",
+  "doc_date": "2026-09-10",
+  "visible": true
+ },
+ {
+  "student": "서두원",
+  "path": "12-서두원/3사_포트폴리오_구성카테고리.html",
+  "kind": "포트폴리오지도",
+  "title": "3사 포트폴리오 구성 카테고리",
+  "doc_date": null,
+  "visible": true
+ },
+ {
+  "student": "이윤정",
+  "path": "13-이윤정/이윤정_VMD_취업진로지도_포트폴리오_PRD.md",
+  "kind": "진로지도",
+  "title": "VMD 취업진로지도·포트폴리오 제작 PRD",
+  "doc_date": null,
+  "visible": true
+ },
+ {
+  "student": "이윤정",
+  "path": "13-이윤정/이윤정_VMD_채용공고_10곳_직무분석.html",
+  "kind": "추천취업처",
+  "title": "VMD 채용공고 10곳 직무분석",
+  "doc_date": null,
+  "visible": true
+ },
+ {
+  "student": "이윤정",
+  "path": "13-이윤정/이윤정_랜딩페이지_수정사항_다올티에스지원용.md",
+  "kind": "포트폴리오지도",
+  "title": "랜딩페이지 수정사항 — 다올티에스 지원용",
+  "doc_date": null,
+  "visible": true
+ },
+ {
+  "student": "이윤정",
+  "path": "13-이윤정/이윤정_포폴구성전략.pdf",
+  "kind": "포트폴리오지도",
+  "title": "포폴 구성 전략",
+  "doc_date": null,
+  "visible": true
+ },
+ {
+  "student": "이윤채",
+  "path": "14-이윤채/이윤채_교육생배포용_포트폴리오개선_및_추천채용공고_2026-09-11.html",
+  "kind": "추천취업처",
+  "title": "포트폴리오 개선 & 추천 채용공고 10선",
+  "doc_date": "2026-09-11",
+  "visible": true
+ },
+ {
+  "student": "이윤채",
+  "path": "14-이윤채/이윤채_취업공고_지원서초안.pdf",
+  "kind": "추천취업처",
+  "title": "취업공고 매칭 및 지원서 초안 5건",
+  "doc_date": "2026-09-16",
+  "visible": true
+ },
+ {
+  "student": "이윤채",
+  "path": "14-이윤채/이윤채_포트폴리오_첨삭노트.pdf",
+  "kind": "포트폴리오지도",
+  "title": "포트폴리오 첨삭 노트 (진단 41/100)",
+  "doc_date": "2026-09-10",
+  "visible": true
+ },
+ {
+  "student": "이윤채",
+  "path": "14-이윤채/이윤채_포트폴리오_수정가이드.md",
+  "kind": "포트폴리오지도",
+  "title": "포트폴리오 수정 가이드",
+  "doc_date": "2026-09-10",
+  "visible": true
+ },
+ {
+  "student": "임효정",
+  "path": "16-임효정/임효정_맞춤_생애경력설계.pdf",
+  "kind": "진로지도",
+  "title": "맞춤 생애 경력 설계 (취업 → 학위 병행 진학 로드맵)",
+  "doc_date": "2026-09-16",
+  "visible": true
+ },
+ {
+  "student": "장아름",
+  "path": "17-장아름/장아름_인쇄랑_면접전략_2026.html",
+  "kind": "진로지도",
+  "title": "인쇄랑 면접 전략 (마스킹본)",
+  "doc_date": "2026-09-16",
+  "visible": true
+ },
+ {
+  "student": "장아름",
+  "path": "17-장아름/장아름_포트폴리오_멘토피드백_2026.pdf",
+  "kind": "포트폴리오지도",
+  "title": "포트폴리오 멘토 피드백 (편집디자인, v2)",
+  "doc_date": "2026-09-10",
+  "visible": true
+ },
+ {
+  "student": "장아름",
+  "path": "17-장아름/장아름_포트폴리오브리핑_세일포커스.html",
+  "kind": "포트폴리오지도",
+  "title": "세일포커스 포트폴리오 브리핑 자료",
+  "doc_date": "2026-09-14",
+  "visible": true
+ },
+ {
+  "student": "장아름",
+  "path": "17-장아름/장아름_예상질문지_세일포커스.html",
+  "kind": "포트폴리오지도",
+  "title": "세일포커스 예상 질문지",
+  "doc_date": "2026-09-14",
+  "visible": true
+ },
+ {
+  "student": "장혜정",
+  "path": "18-장혜정/장혜정_2차첨삭_브로셔.pdf",
+  "kind": "포트폴리오지도",
+  "title": "2차 포트폴리오 첨삭 — 무신사 브로셔",
+  "doc_date": "2026-09-21",
+  "visible": true
+ },
+ {
+  "student": "장혜정",
+  "path": "18-장혜정/장혜정_교육생용_2일_포트폴리오_제작가이드.pdf",
+  "kind": "포트폴리오지도",
+  "title": "2일 포트폴리오 제작 가이드 (컴포지션스튜디오)",
+  "doc_date": "2026-09-10",
+  "visible": true
+ },
+ {
+  "student": "정채원",
+  "path": "19-정채원/포트폴리오진도지도-2차-20260914.pdf",
+  "kind": "진로지도",
+  "title": "포트폴리오 진도지도 2차",
+  "doc_date": "2026-09-14",
+  "visible": true
+ },
+ {
+  "student": "정채원",
+  "path": "19-정채원/채용공고분석-정채원-5개공고-20260916.pdf",
+  "kind": "추천취업처",
+  "title": "채용공고 분석 — 5개 공고 종합",
+  "doc_date": "2026-09-16",
+  "visible": true
+ },
+ {
+  "student": "정채원",
+  "path": "19-정채원/정채원_멘토피드백_0921.pdf",
+  "kind": "포트폴리오지도",
+  "title": "멘토 피드백 (2차 첨삭)",
+  "doc_date": "2026-09-21",
+  "visible": true
+ },
+ {
+  "student": "정채원",
+  "path": "19-정채원/정채원_포폴피드백자료_0921.pdf",
+  "kind": "포트폴리오지도",
+  "title": "포폴 피드백 자료 (2차)",
+  "doc_date": "2026-09-21",
+  "visible": true
+ },
+ {
+  "student": "정채원",
+  "path": "19-정채원/포트폴리오첨삭노트-1차-20260914.pdf",
+  "kind": "포트폴리오지도",
+  "title": "포트폴리오 첨삭 노트 1차",
+  "doc_date": "2026-09-14",
+  "visible": true
+ },
+ {
+  "student": "정채원",
+  "path": "19-정채원/포트폴리오첨삭-3관점리뷰-정채원-20260914.pdf",
+  "kind": "포트폴리오지도",
+  "title": "포트폴리오 첨삭 — 3관점 리뷰",
+  "doc_date": "2026-09-14",
+  "visible": true
+ },
+ {
+  "student": "정채원",
+  "path": "19-정채원/정채원_포폴구성전략.pdf",
+  "kind": "포트폴리오지도",
+  "title": "포폴 구성 전략",
+  "doc_date": null,
+  "visible": true
+ },
+ {
+  "student": "조수정",
+  "path": "20-조수정/조수정_추천채용공고_교육생배포용.pdf",
+  "kind": "추천취업처",
+  "title": "추천 채용공고 10선 · 기업별 지원 전략",
+  "doc_date": "2026-09-11",
+  "visible": true
+ },
+ {
+  "student": "조수정",
+  "path": "20-조수정/조수정_포트폴리오첨삭.pdf",
+  "kind": "포트폴리오지도",
+  "title": "포트폴리오 첨삭 (이력서·자소서, 학과장/윤교수 모드)",
+  "doc_date": "2026-09-11",
+  "visible": true
+ },
+ {
+  "student": "조수정",
+  "path": "20-조수정/조수정_랜딩페이지_디자인지침_기반_멘토링_피드백.pdf",
+  "kind": "포트폴리오지도",
+  "title": "랜딩페이지 디자인지침 기반 멘토링 피드백",
+  "doc_date": null,
+  "visible": true
+ },
+ {
+  "student": "조수정",
+  "path": "20-조수정/조수정_직무별_이력서_자기소개서_멘토링_피드백.pdf",
+  "kind": "포트폴리오지도",
+  "title": "직무별 이력서·자기소개서 멘토링 피드백 가이드",
+  "doc_date": null,
+  "visible": true
+ },
+ {
+  "student": "조수정",
+  "path": "20-조수정/조수정_포트폴리오_Pinterest스타일.html",
+  "kind": "포트폴리오지도",
+  "title": "포트폴리오 (Pinterest 스타일 랜딩)",
+  "doc_date": null,
+  "visible": true
+ },
+ {
+  "student": "황상민",
+  "path": "21-황상민/황상민_채용공고_적정성_피드백_V2.pdf",
+  "kind": "추천취업처",
+  "title": "채용공고 적정성 피드백 V2 (A/B/X군 재분류)",
+  "doc_date": "2026-09-11",
+  "visible": true
+ },
+ {
+  "student": "황상민",
+  "path": "21-황상민/황상민_채용공고10곳_클릭링크_업데이트.pdf",
+  "kind": "추천취업처",
+  "title": "추천 채용공고 10곳 (클릭 링크)",
+  "doc_date": "2026-09-11",
+  "visible": true
+ },
+ {
+  "student": "황상민",
+  "path": "21-황상민/황상민_포트폴리오_멘토피드백_2026.pdf",
+  "kind": "포트폴리오지도",
+  "title": "포트폴리오 멘토 피드백 (4개 작업 진단)",
+  "doc_date": "2026-09-11",
+  "visible": true
+ },
+ {
+  "student": "황상민",
+  "path": "21-황상민/황상민_포트폴리오 구성전략.pdf",
+  "kind": "포트폴리오지도",
+  "title": "포트폴리오 구성 전략",
+  "doc_date": null,
+  "visible": true
+ }
+]
