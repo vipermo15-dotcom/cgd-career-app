@@ -33,7 +33,7 @@ export function renderAdmin(el, { session }) {
   const tabs = [...el.querySelectorAll(".tabs button")];
   const show = (n) => {
     markTab(tabs, n);
-    ({ control: () => paintControlTower(pane, null, { onNavigate: nav }), users: paintUsers, employer: () => paintEmployerDirectory(pane, null, { canRegister: true }),
+    ({ control: async () => { await paintControlTower(pane, null, { onNavigate: nav }); await appendWeeklyReports(pane); }, users: paintUsers, employer: () => paintEmployerDirectory(pane, null, { canRegister: true }),
        companies: paintCompanies, taxonomy: paintTaxonomy, config: paintConfig, ai: paintAi,
        bulk: async () => { const list = await listCohorts(); paintBulkImport(pane, list[0]?.id || null); } }[n])(pane);
   };
@@ -45,6 +45,27 @@ export function renderAdmin(el, { session }) {
   };
   tabs.forEach((b) => (b.onclick = () => show(b.dataset.tab)));
   show("control");
+}
+
+/* ---------- 주차별 보고서 (요약본 링크 목록: reports/index.json — 학생별 정보 없음) ---------- */
+async function appendWeeklyReports(pane) {
+  let list = [];
+  try {
+    const r = await fetch("reports/index.json", { cache: "no-store" });
+    if (!r.ok) throw new Error(r.status);
+    list = await r.json();
+  } catch { list = null; }
+  const rows = (list || []).slice().sort((a, b) => String(b.week).localeCompare(String(a.week)))
+    .map((x) => `<tr><td>${esc(x.label || "")} <span class="muted small">(${esc(x.week)})</span></td>
+      <td>${esc(x.basis || "")}</td><td>${esc(x.summary || "")}</td>
+      <td><a href="${esc(x.file)}" target="_blank" rel="noopener">요약 보기</a></td></tr>`).join("");
+  pane.insertAdjacentHTML("beforeend", `
+    <div class="card"><h2>주차별 보고서</h2>
+      ${list === null ? "<p class='muted small'>보고서 목록을 불러오지 못했습니다.</p>"
+        : rows ? `<div class="scroll-x"><table><tr><th>주차</th><th>기준일</th><th>요약</th><th></th></tr>${rows}</table></div>`
+        : "<p class='muted small'>등록된 보고서가 없습니다.</p>"}
+      <p class="muted small">요약본에는 학생 이름·번호가 없습니다. 학생별 상세는 강사 화면 성과보고에서 확인하세요.</p>
+    </div>`);
 }
 
 async function paintUsers(pane) {
