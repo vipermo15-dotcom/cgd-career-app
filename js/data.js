@@ -590,6 +590,7 @@ export const whoLabel = (map, code) => (map && map[code] ? `${map[code]} (${code
 
 /* ---------- STEP 14: 종합관제판 · 업체현황 · 특이사항 · 깃허브 링크 ---------- */
 export const getControlTower = (cohort = null) => rpc("cgd_control_tower", { p_cohort: cohort });
+export const getCenterNotes = (cohort = null) => rpc("cgd_center_notes", { p_cohort: cohort });
 export const getEmployerDirectory = (from = null, to = null, cohort = null) =>
   rpc("cgd_employer_directory", { p_from: from, p_to: to, p_cohort: cohort });
 

@@ -8,7 +8,7 @@ import {
   listFollowups, saveFollowup, exportReportHtml, exportReportCsv,
   listInterviews, saveInterview, deleteInterview, uploadInterviewDoc, deleteInterviewDoc, signedUrl,
   verifyEmployment, setEmploymentCare, setOutcomeStatus, setCompletionStatus, getEmployment,
-  getControlTower, getEmployerDirectory, listMentorNotes, addMentorNote, deleteMentorNote, NOTE_TYPES,
+  getControlTower, getCenterNotes, getEmployerDirectory, listMentorNotes, addMentorNote, deleteMentorNote, NOTE_TYPES,
   getTopMatches, listPortfolioReviews, setStudentGithubUrl, setEmployment,
   listCompanies, registerCompany, registerEmployment, getPlacementSplit, addCenterNote, CENTER_EMPLOYMENT_TYPES,
   OUTCOME_LABEL, INTERVIEW_RESULT, DOC_KIND, RETENTION, FOLLOWUP_STATUS, STAGES, GRADE_CLASS,
@@ -829,4 +829,41 @@ export async function renderProgressSummary(host, { studentId, student, canEditG
       });
     };
   }
+}
+
+
+/* ---------- 공동훈련센터: 학생별 특이사항 전체 목록 (번호 기준 · 읽기 전용 · cgd_center_notes) ---------- */
+export async function paintCenterNotes(pane, cohort) {
+  pane.innerHTML = skeleton(4);
+  let r;
+  try { r = await getCenterNotes(cohort); }
+  catch (e) { return renderError(pane, e, () => paintCenterNotes(pane, cohort)); }
+  const rows = r.rows || [];
+  const who = (role) => (role === "admin" ? "학과장" : role === "center_lead" ? "센터" : "강사");
+  pane.innerHTML = `
+    <div class="card">
+      <h2>학생별 특이사항 <span class="muted small">(번호 기준 · 열람 전용 · 총 ${rows.length}건)</span></h2>
+      <div class="row">
+        <label class="small">분류 <select id="cn-type"><option value="">전체</option>${NOTE_TYPES.map((t) => `<option>${esc(t)}</option>`).join("")}</select></label>
+        <input id="cn-q" type="search" placeholder="번호(예: S01) 또는 내용 검색" aria-label="특이사항 검색" style="max-width:320px">
+      </div>
+      <div class="scroll-x"><table>
+        <thead><tr><th>번호</th><th>분류</th><th>내용</th><th>확인 예정일</th><th>작성</th><th>등록일</th></tr></thead>
+        <tbody id="cn-body"></tbody></table></div>
+      <p class="muted small">학생 실명·연락처는 표시되지 않습니다. 이 화면은 조회만 가능합니다.</p>
+    </div>`;
+  const body = pane.querySelector("#cn-body");
+  const draw = () => {
+    const t = pane.querySelector("#cn-type").value, q = pane.querySelector("#cn-q").value.trim().toLowerCase();
+    const list = rows.filter((n) => (!t || n.note_type === t)
+      && (!q || String(n.student_code).toLowerCase().includes(q) || String(n.note).toLowerCase().includes(q)));
+    body.innerHTML = list.map((n) => `<tr>
+      <td><b>${esc(n.student_code)}</b></td><td>${esc(n.note_type || "")}</td><td>${esc(n.note)}</td>
+      <td>${esc(n.follow_up_due || "")}</td><td>${who(n.author_role)}</td>
+      <td class="muted small">${esc((n.created_at || "").slice(0, 10))}</td></tr>`).join("")
+      || `<tr><td colspan="6" class="muted">해당하는 특이사항이 없습니다.</td></tr>`;
+  };
+  pane.querySelector("#cn-type").onchange = draw;
+  pane.querySelector("#cn-q").oninput = draw;
+  draw();
 }
