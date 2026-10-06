@@ -4,7 +4,7 @@ import { DEFAULT_COHORT_ID } from "../config.js";
 import {
   getDashboard, listStudents, getStudentDetail, updateStudent,
   updateArtifact, addFeedback, importRoster, listCohorts, createCohort, getCohortExport,
-  getKPI, listApplications, addApplication, updateApplication, deleteApplication,
+  getKPI, getFinalReport, getStudentReport, OUTCOME_LABEL, listApplications, addApplication, updateApplication, deleteApplication,
   getEmployment, setEmployment, getPreferences, savePreferences,
   listJobPostings, saveJobPosting, deleteJobPosting, analyzeJobPosting,
   getTopMatches, getGap,
@@ -188,6 +188,29 @@ async function paintSummary(pane, cohort) {
   try { d = await getDashboard(cohort); }
   catch (e) { return renderError(pane, e, () => paintSummary(pane, cohort)); }
 
+  // 취업률·주의 학생: 성과보고와 같은 원본(cgd_final_report / cgd_student_report). 실패해도 현황 화면은 유지.
+  let outcomeHtml = "";
+  try {
+    const to = new Date().toISOString().slice(0, 10);
+    const [rep, stu] = await Promise.all([getFinalReport("2000-01-01", to, cohort), getStudentReport("2000-01-01", to, cohort)]);
+    const k = rep.kpi, o = rep.outcome_breakdown;
+    const WATCH = ["REFUSED", "UNREACHABLE"];
+    const watch = (stu.rows || []).filter((r) => WATCH.includes(r.outcome_status));
+    const rate = k.employment_rate == null ? "산출 불가" : k.employment_rate + "%";
+    outcomeHtml = `
+    <div class="grid">
+      <div class="card kpi"><span>취업 확정 (검증)</span><b>${k.employed_confirmed}</b>
+        <span class="muted small">취업률 ${rate} · 검증 대기 ${k.employed_pending_verification}명</span></div>
+      <div class="card kpi"><span>주의 학생</span><b>${watch.length}</b>
+        <span class="muted small">취업거부 ${o.refused} · 연락불가 ${o.unreachable}</span></div>
+    </div>
+    <div class="card"><h2>주의 학생 (취업거부·연락불가)</h2><ul class="gates">${
+      watch.map((r) => `<li><b>${esc(r.code)}</b> · ${esc(OUTCOME_LABEL[r.outcome_status] || r.outcome_status)}</li>`).join("") || "<li class='muted'>없음</li>"
+    }</ul></div>`;
+  } catch (e) {
+    outcomeHtml = `<div class="card"><p class="muted small">취업률·주의 학생을 불러오지 못했습니다: ${esc(e.message)}</p></div>`;
+  }
+
   const dist = (obj, map) => Object.entries(obj || {})
     .map(([k, v]) => `<span class="badge">${esc(map ? (map[k] || k) : k)} ${v}</span>`).join(" ");
   const paceRows = (d.pace || []).map((p) => {
@@ -211,6 +234,7 @@ async function paintSummary(pane, cohort) {
         <span class="muted small">수료 ${esc(d.cohort.completion_date)}</span></div>
       <div class="card kpi"><span>등록 / 대상</span><b>${d.cohort.enrolled} / ${d.cohort.target_count}</b></div>
     </div>
+    ${outcomeHtml}
     <div class="card"><h2>단계 분포</h2><div>${dist(d.stage_dist)}</div>
       <h2 style="margin-top:14px">상태 분포</h2><div>${dist(d.status_dist, STATUS)}</div></div>
     <div class="card"><h2>D-day 페이스</h2><div class="scroll-x"><table>
