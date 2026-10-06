@@ -238,9 +238,9 @@ async function paintSummary(pane, cohort) {
     <div class="card"><h2>단계 분포</h2><div>${dist(d.stage_dist)}</div>
       <h2 style="margin-top:14px">상태 분포</h2><div>${dist(d.status_dist, STATUS)}</div></div>
     <div class="card"><h2>D-day 페이스</h2><div class="scroll-x"><table>
-      <tr><th>마일스톤</th><th>목표일</th><th>D</th><th>달성</th></tr>${paceRows}</table></div></div>
+      <tr><th scope="col">마일스톤</th><th scope="col">목표일</th><th scope="col">D</th><th scope="col">달성</th></tr>${paceRows}</table></div></div>
     <div class="card"><h2>아티팩트 완료율</h2><div class="scroll-x"><table>
-      <tr><th>종류</th><th>완료</th><th>진행</th><th>미확인</th></tr>${arts}</table></div></div>
+      <tr><th scope="col">종류</th><th scope="col">완료</th><th scope="col">진행</th><th scope="col">미확인</th></tr>${arts}</table></div></div>
     <div class="card"><h2>게이트 대기 (지연·불일치)</h2><ul class="gates">${gates}</ul></div>
     <p class="muted small">생성 ${esc(d.generated_at)}</p>`;
 }
@@ -285,12 +285,12 @@ async function paintKPI(pane, cohort) {
     <div class="card"><h2>취업 퍼널</h2><div class="funnel">${funnelRows}</div>
       <p class="muted small">불합격·취소 ${f.rejected}건</p></div>
     <div class="card"><h2>전환율</h2><div class="scroll-x"><table>
-      <tr><th>지원→서류합격</th><th>서류→면접</th><th>면접→최종</th><th>취업률</th></tr>
+      <tr><th scope="col">지원→서류합격</th><th scope="col">서류→면접</th><th scope="col">면접→최종</th><th scope="col">취업률</th></tr>
       <tr><td>${rate(r.apply_to_doc_pass)}</td><td>${rate(r.doc_to_interview)}</td>
           <td>${rate(r.interview_to_final)}</td><td>${rate(r.employment_rate)}</td></tr>
     </table></div></div>
     <div class="card"><h2>직무별</h2><div class="scroll-x"><table>
-      <tr><th>직무</th><th>지원</th><th>최종합격</th><th>취업</th></tr>${cat}</table></div></div>
+      <tr><th scope="col">직무</th><th scope="col">지원</th><th scope="col">최종합격</th><th scope="col">취업</th></tr>${cat}</table></div></div>
     <div class="card"><h2>최근 지원 활동</h2><ul class="log">${recent}</ul></div>
     <p class="muted small">지원 건 추가·수정은 <b>학생 탭 → 학생 상세</b>에서.</p>`;
 }
@@ -325,7 +325,7 @@ async function paintPostings(pane) {
       <div class="dhead"><h2>채용공고 (${rows.length})</h2>
         <button id="p-new" class="ghost">+ 공고 추가</button></div>
       <div class="scroll-x"><table class="rowlink tbl-cards">
-        <tr><th>기업</th><th>공고명</th><th>분류</th><th>마감</th><th>상태</th><th></th></tr>${tr}
+        <tr><th scope="col">기업</th><th scope="col">공고명</th><th scope="col">분류</th><th scope="col">마감</th><th scope="col">상태</th><th scope="col"><span class="sr-only">작업</span></th></tr>${tr}
       </table></div>
     </div>
     <div id="p-form"></div>`;
@@ -498,8 +498,8 @@ async function paintStudents(pane, cohort, focusCode) {
   pane.innerHTML = `
     <div class="card"><h2>확인 필요 (${todo.length}명 · 번호순)</h2><ul class="gates">${todoList}</ul></div>
     <div class="card"><div class="scroll-x"><table class="rowlink tbl-cards">
-      <tr><th>이름</th><th>트랙</th><th>단계</th><th>상태</th>
-          <th class="small">이력·자소·PDF·랜딩·피그마·어도비</th><th>다음 액션</th></tr>
+      <tr><th scope="col">이름</th><th scope="col">트랙</th><th scope="col">단계</th><th scope="col">상태</th>
+          <th scope="col" class="small">이력·자소·PDF·랜딩·피그마·어도비</th><th scope="col">다음 액션</th></tr>
       ${tr}
     </table></div></div>
     <div id="detail"></div>`;
@@ -591,7 +591,7 @@ async function openDetail(host, id, refresh, opts = {}) {
 
       <h2>아티팩트</h2>
       <div class="scroll-x"><table class="tbl-cards">
-        <tr><th>종류</th><th>상태</th><th>링크</th></tr>${artList}
+        <tr><th scope="col">종류</th><th scope="col">상태</th><th scope="col">링크</th></tr>${artList}
       </table></div>
       <button id="a-save" class="ghost">아티팩트 저장</button>
       <span id="a-msg" class="msg"></span>
@@ -600,7 +600,7 @@ async function openDetail(host, id, refresh, opts = {}) {
 
       <h2>매칭 · GAP (${(matches || []).length})</h2>
       <div class="scroll-x"><table class="tbl-cards">
-        <tr><th>등급</th><th>기업</th><th>공고명</th><th></th></tr>
+        <tr><th scope="col">등급</th><th scope="col">기업</th><th scope="col">공고명</th><th scope="col"><span class="sr-only">작업</span></th></tr>
         ${(matches || []).slice(0, 6).map((m) => `
           <tr data-mpid="${m.posting_id}">
             <td class="tc-title"><span class="grade ${GRADE_CLASS[m.grade] || ""}">${m.grade} ${Math.round(m.total)}</span>
@@ -617,7 +617,7 @@ async function openDetail(host, id, refresh, opts = {}) {
 
       <h2>지원 현황 (${apps.length})</h2>
       <div class="scroll-x"><table class="tbl-cards">
-        <tr><th>회사</th><th>직무명</th><th>분류</th><th>상태</th><th>지원일</th><th></th></tr>
+        <tr><th scope="col">회사</th><th scope="col">직무명</th><th scope="col">분류</th><th scope="col">상태</th><th scope="col">지원일</th><th scope="col"><span class="sr-only">작업</span></th></tr>
         ${apps.map((a) => `
           <tr data-app="${a.id}">
             <td class="tc-title">${esc(a.company)}</td>

@@ -62,7 +62,7 @@ async function appendWeeklyReports(pane) {
   pane.insertAdjacentHTML("beforeend", `
     <div class="card"><h2>주차별 보고서</h2>
       ${list === null ? "<p class='muted small'>보고서 목록을 불러오지 못했습니다.</p>"
-        : rows ? `<div class="scroll-x"><table><tr><th>주차</th><th>기준일</th><th>요약</th><th></th></tr>${rows}</table></div>`
+        : rows ? `<div class="scroll-x"><table><tr><th scope="col">주차</th><th scope="col">기준일</th><th scope="col">요약</th><th scope="col"><span class="sr-only">작업</span></th></tr>${rows}</table></div>`
         : "<p class='muted small'>등록된 보고서가 없습니다.</p>"}
       <p class="muted small">요약본에는 학생 이름·번호가 없습니다. 학생별 상세는 강사 화면 성과보고에서 확인하세요.</p>
     </div>`);
@@ -96,7 +96,7 @@ async function paintUsers(pane) {
       <div class="row arow"><input id="u-q" type="search" placeholder="이메일로 검색" aria-label="회원 검색" style="max-width:320px">
         <span class="muted small" id="u-count">${rows.length}명</span></div>
       <div class="scroll-x"><table class="tbl-cards">
-      <tr><th>이메일</th><th>역할</th><th>학생번호</th><th>가입</th><th>접속 횟수</th><th>마지막 접속</th><th></th></tr>
+      <tr><th scope="col">이메일</th><th scope="col">역할</th><th scope="col">학생번호</th><th scope="col">가입</th><th scope="col">접속 횟수</th><th scope="col">마지막 접속</th><th scope="col"><span class="sr-only">작업</span></th></tr>
       ${rows.map((u) => `
         <tr data-uid="${u.user_id}">
           <td class="tc-title">${esc(u.email)}</td>
@@ -151,7 +151,7 @@ async function paintTaxonomy(pane) {
     <div class="card">
       <h2>${title} (${rows.length})</h2>
       <div class="scroll-x"><table class="tbl-cards">
-        <tr><th>id</th><th>이름</th>${extraCol ? "<th>분류</th>" : ""}<th></th></tr>
+        <tr><th scope="col">id</th><th scope="col">이름</th>${extraCol ? '<th scope="col">분류</th>' : ""}<th scope="col"><span class="sr-only">작업</span></th></tr>
         ${rows.map((r) => `
           <tr data-id="${esc(r.id)}" data-table="${table}">
             <td class="small tc-title">${esc(r.id)}</td>
@@ -172,7 +172,7 @@ async function paintTaxonomy(pane) {
     <div class="card">
       <h2>직무 (11 고정)</h2>
       <div class="scroll-x"><table class="tbl-cards">
-        <tr><th>코드</th><th>이름</th><th>정렬</th><th></th></tr>
+        <tr><th scope="col">코드</th><th scope="col">이름</th><th scope="col">정렬</th><th scope="col"><span class="sr-only">작업</span></th></tr>
         ${cats.map((c) => `
           <tr data-code="${esc(c.code)}">
             <td class="small tc-title">${esc(c.code)}</td>
@@ -248,7 +248,7 @@ async function paintCompanies(pane) {
         <span id="co-msg" class="msg"></span>
       </div>
       <div class="scroll-x"><table class="tbl-cards">
-        <tr><th>기업명</th><th>산업</th><th>규모</th><th>web</th><th></th></tr>
+        <tr><th scope="col">기업명</th><th scope="col">산업</th><th scope="col">규모</th><th scope="col">web</th><th scope="col"><span class="sr-only">작업</span></th></tr>
         ${rows.map((c) => `<tr data-cid="${c.id}">
           <td data-label="기업명"><input class="co-e" data-k="name" value="${esc(c.name)}" style="width:auto"></td>
           <td data-label="산업"><input class="co-e" data-k="industry" value="${esc(c.industry || "")}" style="width:auto"></td>
@@ -352,7 +352,7 @@ async function paintAi(pane) {
   catch (e) { return renderError(pane, e, () => paintAi(pane)); }
   pane.innerHTML = `
     <div class="card"><h2>AI 실행 로그 (${rows.length})</h2><div class="scroll-x"><table class="tbl-cards">
-      <tr><th>일시</th><th>에이전트</th><th>신뢰도</th><th>모델</th><th>입력요약</th></tr>
+      <tr><th scope="col">일시</th><th scope="col">에이전트</th><th scope="col">신뢰도</th><th scope="col">모델</th><th scope="col">입력요약</th></tr>
       ${rows.map((r) => `<tr>
         <td class="small tc-title">${esc((r.created_at || "").slice(0, 16).replace("T", " "))}</td>
         <td data-label="에이전트">${esc(r.agent)}</td>

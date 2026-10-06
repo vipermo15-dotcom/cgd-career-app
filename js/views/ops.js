@@ -68,7 +68,7 @@ export async function paintWeekly(pane, cohort, { readOnly = false } = {}) {
         </div>
         <p class="muted small">진로지도 기록 <b>${w.guided_count} / ${w.total}명</b> · 번호순 표시 (점수·순위 없음)</p>
         <div class="scroll-x"><table class="rowlink tbl-cards">
-          <tr><th>이름</th><th>단계</th><th>성과 상태</th><th>지원</th><th>면접</th><th>자료</th><th>최근 면접</th><th>취업·사후</th><th>진로지도</th><th></th></tr>
+          <tr><th scope="col">이름</th><th scope="col">단계</th><th scope="col">성과 상태</th><th scope="col">지원</th><th scope="col">면접</th><th scope="col">자료</th><th scope="col">최근 면접</th><th scope="col">취업·사후</th><th scope="col">진로지도</th><th scope="col"><span class="sr-only">작업</span></th></tr>
           ${rows || `<tr><td colspan="10" class="muted">대상 학생이 없습니다.</td></tr>`}
         </table></div>
         <div id="w-form"></div>
@@ -161,9 +161,9 @@ export async function paintFollowups(pane, cohort) {
     <div class="card">
       <h2>사후관리 (수료일 기준 30일·90일)</h2>
       <div class="row"><button id="fu-gen">일정 생성 (30·90일)</button><span id="fu-msg" class="msg"></span></div>
-      <table><tr><th>시점</th><th>전체</th><th>완료</th><th>예정</th><th>연락불가</th></tr>${ms || `<tr><td colspan="5" class="muted">일정이 없습니다. 「일정 생성」을 누르세요.</td></tr>`}</table>
+      <table><tr><th scope="col">시점</th><th scope="col">전체</th><th scope="col">완료</th><th scope="col">예정</th><th scope="col">연락불가</th></tr>${ms || `<tr><td colspan="5" class="muted">일정이 없습니다. 「일정 생성」을 누르세요.</td></tr>`}</table>
       <div class="scroll-x"><table class="tbl-cards">
-        <tr><th>이름</th><th>시점</th><th>예정일</th><th>상태</th><th>재직 상태</th><th>처리일</th><th>메모</th><th></th></tr>
+        <tr><th scope="col">이름</th><th scope="col">시점</th><th scope="col">예정일</th><th scope="col">상태</th><th scope="col">재직 상태</th><th scope="col">처리일</th><th scope="col">메모</th><th scope="col"><span class="sr-only">작업</span></th></tr>
         ${rows}</table></div>
     </div>`;
   pane.querySelector("#fu-gen").onclick = async (e) => {
@@ -227,7 +227,7 @@ export async function paintReport(pane, cohort) {
   };
   const outcome = (r) => {
     const o = r.outcome_breakdown;
-    return `<table><tr><th>성과 분포</th><th>인원</th></tr>
+    return `<table><tr><th scope="col">성과 분포</th><th scope="col">인원</th></tr>
       ${[["취업 확정", o.employed], ["미취업", o.not_employed], ["보류", o.hold], ["취업불가", o.ineligible],
          ["취업거부", o.refused], ["연락불가", o.unreachable], ["자료 미입력 (미취업 아님)", o.data_pending]]
         .map(([a, b]) => `<tr><td>${a}</td><td>${b}</td></tr>`).join("")}</table>`;
@@ -245,10 +245,10 @@ export async function paintReport(pane, cohort) {
     ${t.groups.filter((g) => g.items.length).map((g) => `<h3 class="small">${esc(g.label)}</h3><ul>${g.items.map((i) =>
       `<li class="small"><b>${esc(nameMapCache[i.student_code] || i.student_code)}</b> ${esc(i.detail)} <span class="muted">${esc(i.date || "")}</span></li>`).join("")}</ul>`).join("") || "<p class='muted'>처리할 업무가 없습니다.</p>"}</div>`;
   const cats = (r) => r.employment_by_category.length
-    ? `<table><tr><th>취업 직무 분야</th><th>인원</th></tr>${r.employment_by_category.map((c) => `<tr><td>${esc(c.name)}</td><td>${c.count}</td></tr>`).join("")}</table>` : "";
+    ? `<table><tr><th scope="col">취업 직무 분야</th><th scope="col">인원</th></tr>${r.employment_by_category.map((c) => `<tr><td>${esc(c.name)}</td><td>${c.count}</td></tr>`).join("")}</table>` : "";
   const defs = (r) => `<div class="card"><h2>산출 기준</h2><ol class="small">${Object.values(r.definitions).map((d) => `<li>${esc(d)}</li>`).join("")}</ol></div>`;
   const studentTable = (s) => `<div class="card"><h2>학생별 명세 (번호 기준)</h2><div class="scroll-x"><table class="tbl-cards">
-    <tr><th>번호</th><th>단계</th><th>수료</th><th>성과</th><th>지원</th><th>면접</th><th>취업(검증)</th><th>보고</th></tr>
+    <tr><th scope="col">번호</th><th scope="col">단계</th><th scope="col">수료</th><th scope="col">성과</th><th scope="col">지원</th><th scope="col">면접</th><th scope="col">취업(검증)</th><th scope="col">보고</th></tr>
     ${s.rows.map((r) => `<tr><td class="tc-title"><b>${esc(r.code)}</b></td><td data-label="단계">${esc(r.stage)}</td><td data-label="수료">${esc(r.completion_status)}</td>
       <td data-label="성과">${esc(OUTCOME_LABEL[r.outcome_status] || r.outcome_status)}</td><td data-label="지원">${r.application_count}</td><td data-label="면접">${r.interview_count}</td>
       <td class="tc-wide" data-label="취업(검증)">${r.employment ? (r.employment.verified ? "✅ " : "⏳ ") + esc(r.employment.company || "") : "–"}</td>
@@ -537,7 +537,7 @@ export async function paintControlTower(pane, cohort, { onNavigate, audience = "
       <ul>${dqItems || "<li class='muted'>검증 항목 없음</li>"}</ul>
     </div>
     <div class="cols2">
-      <div class="card"><h2>이번 주 구직활동 (직무별)</h2><table><tr><th>직무</th><th>지원</th><th>면접</th></tr>${jobRows}</table></div>
+      <div class="card"><h2>이번 주 구직활동 (직무별)</h2><table><tr><th scope="col">직무</th><th scope="col">지원</th><th scope="col">면접</th></tr>${jobRows}</table></div>
       <div class="card clickable" data-nav="employer"><h2>취업 시기 (최근 12개월)</h2><div class="funnel">${timeline}</div></div>
     </div>
     <div class="cols2">
@@ -552,6 +552,9 @@ export async function paintControlTower(pane, cohort, { onNavigate, audience = "
 
   pane.querySelectorAll("[data-nav]").forEach((el) => {
     const go = () => onNavigate && onNavigate(el.dataset.nav, el.dataset.code ? { focusCode: el.dataset.code } : undefined);
+    // 키보드로도 선택: 표 행·목록 항목은 원래 의미(row/listitem)를 유지한 채 포커스만 받고, 카드(div)는 버튼 역할을 준다
+    if (!el.hasAttribute("tabindex")) el.tabIndex = 0;
+    if (el.tagName === "DIV" && !el.getAttribute("role")) el.setAttribute("role", "button");
     el.onclick = go;
     el.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } };
   });
@@ -578,7 +581,7 @@ export async function paintEmployerDirectory(pane, cohort, { canRegister, useRpc
       </div>
       <div id="ef-form"></div>
       <div class="scroll-x"><table class="tbl-cards">
-        <tr><th>번호</th><th>업체</th><th>직무</th><th>고용형태</th><th>입사일</th><th>계약서</th><th>보험</th><th>재직상태</th><th>증빙</th><th>성사 주체</th></tr>
+        <tr><th scope="col">번호</th><th scope="col">업체</th><th scope="col">직무</th><th scope="col">고용형태</th><th scope="col">입사일</th><th scope="col">계약서</th><th scope="col">보험</th><th scope="col">재직상태</th><th scope="col">증빙</th><th scope="col">성사 주체</th></tr>
         ${rows}</table></div>
     </div>
     ${useRpc ? `<div class="card"><h2>학생별 활동 기록 추가</h2>
@@ -724,7 +727,7 @@ export async function paintCompanyRegister(pane) {
       <div class="card">
         <h2>등록된 업체 (${rows.length}곳)</h2>
         <div class="scroll-x"><table class="tbl-cards">
-          <tr><th>기업명</th><th>산업</th><th>규모</th><th>협약</th></tr>
+          <tr><th scope="col">기업명</th><th scope="col">산업</th><th scope="col">규모</th><th scope="col">협약</th></tr>
           ${rows.map((c) => `<tr><td class="tc-title">${esc(c.name)}</td><td data-label="산업">${esc(c.industry || "—")}</td>
             <td data-label="규모">${esc(c.size || "—")}</td><td data-label="협약">${c.is_partner ? "✔ 협약기업" : "—"}</td></tr>`).join("")
             || `<tr><td colspan="4" class="muted">없음</td></tr>`}
@@ -848,7 +851,7 @@ export async function paintCenterNotes(pane, cohort) {
         <input id="cn-q" type="search" placeholder="번호(예: S01) 또는 내용 검색" aria-label="특이사항 검색" style="max-width:320px">
       </div>
       <div class="scroll-x"><table>
-        <thead><tr><th>번호</th><th>분류</th><th>내용</th><th>확인 예정일</th><th>작성</th><th>등록일</th></tr></thead>
+        <thead><tr><th scope="col">번호</th><th scope="col">분류</th><th scope="col">내용</th><th scope="col">확인 예정일</th><th scope="col">작성</th><th scope="col">등록일</th></tr></thead>
         <tbody id="cn-body"></tbody></table></div>
       <p class="muted small">학생 실명·연락처는 표시되지 않습니다. 이 화면은 조회만 가능합니다.</p>
     </div>`;

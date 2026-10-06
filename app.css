@@ -433,6 +433,8 @@ input[type="search"] { -webkit-appearance: none; appearance: none; }
 .card.kpi.clickable:focus-visible, .card.clickable:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 tr.clickable:hover { background: var(--bg-alt); }
 li.clickable:hover { background: var(--bg-alt); border-radius: 8px; }
+tr.clickable:focus-visible, li.clickable:focus-visible { outline: 2px solid var(--accent-strong); outline-offset: -2px; background: var(--bg-alt); }
+.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 .badge.lg { padding: 4px 14px; font-size: 14px; font-weight: 700; }
 .badge.warn { background: #FFF3C4; color: #7A5A00; }
 .badge.ok { background: #DDF4E6; color: #1B7A43; }

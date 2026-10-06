@@ -121,7 +121,7 @@ async function paint(pane, studentId) {
     <div class="card">
       <h2>맞춤 추천</h2>
       ${(matches || []).length ? `<div class="scroll-x"><table class="tbl-cards">
-        <tr><th>등급</th><th>기업</th><th>공고명</th><th>마감</th><th></th></tr>
+        <tr><th scope="col">등급</th><th scope="col">기업</th><th scope="col">공고명</th><th scope="col">마감</th><th scope="col"><span class="sr-only">작업</span></th></tr>
         ${matches.slice(0, 8).map((m) => `
           <tr data-mpid="${m.posting_id}">
             <td class="tc-title">${gradeBadge(m)} <span class="muted small">${esc(m.grade_label)}</span></td>
@@ -163,7 +163,7 @@ async function paint(pane, studentId) {
       <h2>내 지원 관리 (${apps.length})</h2>
       ${emp ? `<p class="badge">🎉 취업 확정 · ${esc(emp.company)}${emp.position ? " · " + esc(emp.position) : ""}</p>` : ""}
       <div class="scroll-x"><table class="tbl-cards">
-        <tr><th>회사</th><th>직무명</th><th>상태</th><th>지원일</th><th></th></tr>
+        <tr><th scope="col">회사</th><th scope="col">직무명</th><th scope="col">상태</th><th scope="col">지원일</th><th scope="col"><span class="sr-only">작업</span></th></tr>
         ${apps.map((a) => `
           <tr data-app="${a.id}">
             <td class="tc-title">${esc(a.company)}</td>
@@ -194,7 +194,7 @@ async function paint(pane, studentId) {
     <div class="card">
       <h2>채용공고 (${postings.length})</h2>
       <div class="scroll-x"><table class="tbl-cards">
-        <tr><th>기업</th><th>공고명</th><th>분류</th><th>마감</th><th></th></tr>
+        <tr><th scope="col">기업</th><th scope="col">공고명</th><th scope="col">분류</th><th scope="col">마감</th><th scope="col"><span class="sr-only">작업</span></th></tr>
         ${postings.map((p) => `
           <tr>
             <td class="tc-title">${esc(p.company)} ${gradeBadge(matchByPid[p.id])}</td>

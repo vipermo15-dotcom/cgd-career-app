@@ -43,7 +43,7 @@ export async function paintCareerByJob(pane, cohort, { onOpenStudent } = {}) {
     <div class="card">
       <h2>${esc(c.name)} <span class="muted small">${c.students.length}명 (주 직무 ${c.students.filter((s) => s.is_primary).length})</span></h2>
       <div class="scroll-x"><table class="tbl-cards rowlink">
-        <tr><th>학생</th><th>구분</th><th>목표 직무명</th><th>진단</th><th>포트폴리오</th><th>다음 행동</th><th>추천처</th></tr>
+        <tr><th scope="col">학생</th><th scope="col">구분</th><th scope="col">목표 직무명</th><th scope="col">진단</th><th scope="col">포트폴리오</th><th scope="col">다음 행동</th><th scope="col">추천처</th></tr>
         ${c.students.map((s) => `
           <tr data-id="${s.student_id}" data-code="${esc(s.code)}">
             <td data-label="학생"><b>${esc(whoLabel(names, s.code))}</b></td>
@@ -90,7 +90,7 @@ export async function paintPostCompletion(pane, cohort, { onOpenStudent } = {}) 
     <div class="card"><h2>수료 후 진도지도 현황</h2>
       <p class="muted small">학과장이 남긴 특이사항 기준입니다. 기록은 학생 상세의 「특이사항」에서 분류·다음 확인일과 함께 입력합니다.</p>
       <div class="scroll-x"><table class="tbl-cards rowlink">
-        <tr><th>학생</th><th>취업</th><th>수료 후 기록</th><th>마지막 기록</th><th>다음 확인일</th><th>진로지도 다음 행동</th></tr>
+        <tr><th scope="col">학생</th><th scope="col">취업</th><th scope="col">수료 후 기록</th><th scope="col">마지막 기록</th><th scope="col">다음 확인일</th><th scope="col">진로지도 다음 행동</th></tr>
         ${rows.map((r) => `
           <tr data-code="${esc(r.code)}">
             <td data-label="학생"><b>${esc(whoLabel(names, r.code))}</b></td>
@@ -147,7 +147,7 @@ export async function renderCareerPanel(host, { studentId }) {
 
     <h3 style="margin-top:16px">추천 취업처</h3>
     <div class="scroll-x"><table class="tbl-cards">
-      <tr><th>순위</th><th>회사</th><th>직무</th><th>마감</th><th>상태</th><th>사유</th><th></th></tr>
+      <tr><th scope="col">순위</th><th scope="col">회사</th><th scope="col">직무</th><th scope="col">마감</th><th scope="col">상태</th><th scope="col">사유</th><th scope="col"><span class="sr-only">작업</span></th></tr>
       ${recs.map((r) => `
         <tr data-id="${r.id}">
           <td data-label="순위"><input class="r-pri" type="number" min="1" max="5" value="${r.priority}" style="width:56px"></td>
@@ -311,7 +311,7 @@ export async function renderMyCareer(host) {
     ${p.next_action ? `<p><span class="muted small">다음 행동</span><br>${esc(p.next_action)}${p.next_due ? ` <span class="muted small">${esc(p.next_due)} ${dday(p.next_due)}</span>` : ""}</p>` : ""}` : ""}
     ${recRows ? `<h3 style="margin-top:14px">추천 취업처</h3>
       <div class="scroll-x"><table class="tbl-cards">
-        <tr><th>순위</th><th>회사</th><th>직무</th><th>마감</th><th>상태</th><th>추천 이유</th><th></th></tr>${recRows}</table></div>
+        <tr><th scope="col">순위</th><th scope="col">회사</th><th scope="col">직무</th><th scope="col">마감</th><th scope="col">상태</th><th scope="col">추천 이유</th><th scope="col"><span class="sr-only">작업</span></th></tr>${recRows}</table></div>
       <p class="muted small">공고는 조기 마감·변경될 수 있으니 지원 직전에 링크에서 다시 확인하세요.</p>` : ""}
     ${d.documents.length ? `<h3 style="margin-top:14px">진로지도 자료</h3>
       <ul class="log">${d.documents.map((x, i) => `
@@ -335,7 +335,7 @@ export async function paintCenterCareer(pane, cohort) {
   pane.innerHTML = `
     <div class="card"><h2>진로지도 요약 <span class="muted small">번호 기준 · 진단점수는 학과에서만 확인할 수 있습니다</span></h2>
       <div class="scroll-x"><table class="tbl-cards">
-        <tr><th>번호</th><th>주 직무</th><th>보조</th><th>목표 직무명</th><th>진단</th><th>포트폴리오</th><th>다음 행동</th><th>추천 취업처</th></tr>
+        <tr><th scope="col">번호</th><th scope="col">주 직무</th><th scope="col">보조</th><th scope="col">목표 직무명</th><th scope="col">진단</th><th scope="col">포트폴리오</th><th scope="col">다음 행동</th><th scope="col">추천 취업처</th></tr>
         ${rows.map((r) => `
           <tr>
             <td data-label="번호"><b>${esc(r.code)}</b></td>

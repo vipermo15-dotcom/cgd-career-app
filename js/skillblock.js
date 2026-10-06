@@ -72,7 +72,7 @@ export async function renderSkillBlock(host, studentId, opts = {}) {
     <div class="card">
       <h2>Skill (${sk.length})</h2>
       <div class="scroll-x"><table class="tbl-cards">
-        <tr><th>항목</th><th>레벨(자기평가)</th><th>Evidence</th><th>검증</th><th></th></tr>
+        <tr><th scope="col">항목</th><th scope="col">레벨(자기평가)</th><th scope="col">Evidence</th><th scope="col">검증</th><th scope="col"><span class="sr-only">작업</span></th></tr>
         ${rowsHtml(sk, skills, "skill_id") || `<tr><td colspan="5" class="muted">없음</td></tr>`}
       </table></div>
       ${addRow(skills, "skill", sk.map((x) => x.skill_id))}
@@ -81,7 +81,7 @@ export async function renderSkillBlock(host, studentId, opts = {}) {
     <div class="card">
       <h2>Tool (${st.length})</h2>
       <div class="scroll-x"><table class="tbl-cards">
-        <tr><th>항목</th><th>레벨</th><th>Evidence</th><th>검증</th><th></th></tr>
+        <tr><th scope="col">항목</th><th scope="col">레벨</th><th scope="col">Evidence</th><th scope="col">검증</th><th scope="col"><span class="sr-only">작업</span></th></tr>
         ${rowsHtml(st, tools, "tool_id") || `<tr><td colspan="5" class="muted">없음</td></tr>`}
       </table></div>
       ${addRow(tools, "tool", st.map((x) => x.tool_id))}
