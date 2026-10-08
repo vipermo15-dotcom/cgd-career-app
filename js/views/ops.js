@@ -39,7 +39,8 @@ export async function paintWeekly(pane, cohort, { readOnly = false } = {}) {
     pane.innerHTML = `<div class="card">${skeleton(4)}</div>`;
     let w;
     let names = {};
-    try { [w, names] = await Promise.all([getWeeklyBoard(week, cohort), getNameMap(cohort)]); }
+    // 센터는 students 직접 조회 권한이 없어 이름 없이 번호만 표시
+    try { [w, names] = await Promise.all([getWeeklyBoard(week, cohort), getNameMap(cohort).catch(() => ({}))]); }
     catch (e) { return renderError(pane, e, load); }
     week = w.week_start;
     const rows = w.rows.map((r) => {

@@ -2,7 +2,7 @@
 // 열람(DASHBOARD·성과보고·주차현황·업체현황) + 업체 등록 + 취업자 등록(검증은 여전히 관리자만).
 // 그 외 누구도 이 화면을 볼 수 없음(열람 전용 viewer 역할 접근 폐지 — router.js 에서 이미 차단).
 import { signOut } from "../auth.js";
-import { skeleton, renderError, tabBtn, markTab, privacyAckDialog } from "../ui.js";
+import { skeleton, renderError, tabBtn, markTab, privacyAckDialog, toast } from "../ui.js";
 import { listCohorts, ackPrivacyPolicy } from "../data.js";
 import { paintCenterCareer } from "./career.js";
 import { paintReport, paintWeekly, paintControlTower, paintEmployerDirectory, paintCompanyRegister, paintCenterNotes } from "./ops.js";
@@ -35,8 +35,20 @@ async function ensurePrivacyAck() {
   });
 }
 
+// 로그인 알림: router.js 가 로그인 시점에 미리 조회해둔 접속 횟수를 세션당 한 번만 보여준다(화면 재방문 시 다시 안 뜸)
+function showLoginCountAlert() {
+  let n;
+  try {
+    n = sessionStorage.getItem("cgd_login_count");
+    if (n === null || sessionStorage.getItem("cgd_login_count_shown")) return;
+    sessionStorage.setItem("cgd_login_count_shown", "1");
+  } catch { return; }
+  toast(`이번이 ${n}번째 접속입니다.`, "info", { duration: 0 });
+}
+
 export async function renderViewer(el, { session, profile }) {
   await ensurePrivacyAck();
+  showLoginCountAlert();
   el.innerHTML = `
     <header class="topbar">
       <strong>공동훈련센터 · 담당</strong>

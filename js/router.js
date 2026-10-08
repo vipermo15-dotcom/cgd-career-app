@@ -50,10 +50,15 @@ export async function route() {
   }
 
   // 접속 횟수 기록 — 새 브라우저 세션(탭을 새로 열거나 브라우저를 닫았다 열면)당 1회만, 화면 이동마다 늘지 않음
+  // 공동훈련센터(팀장·담당)는 로그인 시점에 접속 횟수를 바로 보여줘야 하므로 결과를 기다렸다가 화면에 전달한다.
   try {
     if (!sessionStorage.getItem("cgd_login_logged")) {
       sessionStorage.setItem("cgd_login_logged", "1");
-      recordLogin().catch(() => {});
+      if (profile.role === "center_lead") {
+        try { sessionStorage.setItem("cgd_login_count", String(await recordLogin())); } catch { /* 알림 실패해도 화면 진입은 막지 않음 */ }
+      } else {
+        recordLogin().catch(() => {});
+      }
     }
   } catch { /* 세션스토리지 접근 불가 시 조용히 건너뜀 — 화면 진입 자체는 막지 않음 */ }
 
