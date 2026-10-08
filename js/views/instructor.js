@@ -445,7 +445,9 @@ function postingForm(host, p, done) {
 function nextAction(s) {
   const idx = STAGES.indexOf(s.stage);
   const done = (t) => ((s.artifacts || []).find((a) => a.type === t) || {}).status === "완료";
-  if (s.status === "placed" || s.stage === "졸업") return { label: "완료 (취업 확정)", trig: "" };
+  if (s.status === "placed") return { label: "완료 (취업 확정)", trig: "" };
+  // stage="졸업"은 진로지도 과정을 다 마쳤다는 뜻일 뿐 취업 여부와 무관 — status가 placed일 때만 "취업 확정"으로 표시
+  if (s.stage === "졸업") return { label: "진로지도 완료 (취업 미확정 — 구직 중)", trig: "" };
   if (s.status === "data_mismatch") return { label: "데이터 불일치 원인 확인", trig: "수기" };
   if (idx < STAGES.indexOf("진로지도")) return { label: "진로지도 진행", trig: '"진로지도 시작"' };
   if (idx < STAGES.indexOf("채용공고분석")) return { label: "채용공고 분석", trig: '"채용공고 분석하자"' };
