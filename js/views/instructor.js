@@ -461,6 +461,16 @@ function nextAction(s) {
   return { label: "지원·마무리", trig: "" };
 }
 
+// 수료생 3분류: A=적극 구직활동(채용공고분석 이상 단계), B=포폴준비·구직활동 시작 전, C=미비(취업거부·연락불가)
+// 취업이 이미 확정(status=placed)된 학생은 분류 대상에서 제외(별도 "취업 확정" 처리)
+function classify(r) {
+  if (r.status === "placed") return null;
+  if (r.outcome_status === "REFUSED" || r.outcome_status === "UNREACHABLE") return "C";
+  const idx = STAGES.indexOf(r.stage);
+  return idx >= STAGES.indexOf("채용공고분석") ? "A" : "B";
+}
+const CLASS_LABEL = { A: "A · 적극 구직활동", B: "B · 포폴준비·구직활동 시작 전", C: "C · 미비(취업거부·연락불가)" };
+
 /* ---------- 학생 목록 + 상세 ---------- */
 async function paintStudents(pane, cohort, focusCode) {
   pane.innerHTML = skeleton(4);
@@ -497,8 +507,27 @@ async function paintStudents(pane, cohort, focusCode) {
       ${na.trig ? `<span class="muted small">${esc(na.trig)}</span>` : ""}</li>`;
   }).join("") || "<li class='muted'>없음</li>";
 
+  const placed = sorted.filter((r) => r.status === "placed");
+  const groups = { A: [], B: [], C: [] };
+  sorted.forEach((r) => { const c = classify(r); if (c) groups[c].push(r); });
+
+  const groupTable = (list) => list.length ? `<div class="scroll-x"><table class="rowlink tbl-cards">
+      <tr><th scope="col">이름</th><th scope="col">단계</th><th scope="col">상태</th><th scope="col">다음 액션</th></tr>
+      ${list.map((r) => {
+        const na = nextAction(r);
+        return `<tr data-id="${r.id}"><td class="tc-title"><b>${esc(r.display_name || r.code)}</b> <span class="muted small">${esc(r.code)}</span></td>
+          <td data-label="단계">${esc(r.stage)}</td><td data-label="상태">${esc(STATUS[r.status] || r.status)}</td>
+          <td class="small tc-wide" data-label="다음 액션">${esc(na.label)}</td></tr>`;
+      }).join("")}
+    </table></div>` : `<p class="muted">없음</p>`;
+
   pane.innerHTML = `
     <div class="card"><h2>확인 필요 (${todo.length}명 · 번호순)</h2><ul class="gates">${todoList}</ul></div>
+    <div class="card"><h2>취업 확정 (${placed.length}명)</h2>${groupTable(placed)}</div>
+    <div class="card"><h2>${CLASS_LABEL.A} (${groups.A.length}명)</h2>${groupTable(groups.A)}</div>
+    <div class="card"><h2>${CLASS_LABEL.B} (${groups.B.length}명)</h2>${groupTable(groups.B)}</div>
+    <div class="card"><h2>${CLASS_LABEL.C} (${groups.C.length}명)</h2>${groupTable(groups.C)}</div>
+    <h2>전체 명단</h2>
     <div class="card"><div class="scroll-x"><table class="rowlink tbl-cards">
       <tr><th scope="col">이름</th><th scope="col">트랙</th><th scope="col">단계</th><th scope="col">상태</th>
           <th scope="col" class="small">이력·자소·PDF·랜딩·피그마·어도비</th><th scope="col">다음 액션</th></tr>
@@ -564,109 +593,134 @@ async function openDetail(host, id, refresh, opts = {}) {
     <div class="card detail">
       <div class="dhead"><h2>${esc(s.display_name || s.code)} <span class="muted small">${esc(s.code)} · ${esc(s.track || "")}</span></h2>
         <button id="dclose" class="ghost">닫기</button></div>
-      <div class="row">
-        <label>이름 <input id="d-name" value="${esc(s.display_name || "")}" placeholder="표시 이름" style="width:130px"></label>
-        <label>단계 <select id="d-stage">${stageOpts}</select></label>
-        <label>상태 <select id="d-status">${statusOpts}</select></label>
-        <button id="d-save">저장</button>
-        <span id="d-msg" class="msg"></span>
-      </div>
-      <p class="muted small">${esc(s.note || "")}</p>
 
-      <h2>진행 요약</h2>
-      <div id="i-progress"></div>
-
-      <h2>진로지도 <span class="muted small">(직무·추천 취업처·자료 — 진단점수는 학과 전용)</span></h2>
-      <div id="i-career"></div>
-
-      <h2>특이사항 <span class="muted small">(강사·관리자만 입력 — 수료 후 진도지도는 분류·다음 확인일과 함께 기록)</span></h2>
-      <div id="i-notes"></div>
-
-      <h2>희망 직무</h2>
-      <div class="row">
-        <label class="small">1 <select id="pf1" style="width:auto">${prefOpts(prefByRank[1])}</select></label>
-        <label class="small">2 <select id="pf2" style="width:auto">${prefOpts(prefByRank[2])}</select></label>
-        <label class="small">3 <select id="pf3" style="width:auto">${prefOpts(prefByRank[3])}</select></label>
-        <button id="pf-save" class="ghost">저장</button>
-        <span id="pf-msg" class="msg"></span>
+      <div class="tabs" role="tablist" aria-label="학생 상세 메뉴">
+        <button data-subtab="basic" class="on" aria-current="page">기본정보</button>
+        <button data-subtab="employ" aria-current="false">취업현황</button>
+        <button data-subtab="career" aria-current="false">진로지도</button>
+        <button data-subtab="notes" aria-current="false">특이사항</button>
       </div>
 
-      <h2>아티팩트</h2>
-      <div class="scroll-x"><table class="tbl-cards">
-        <tr><th scope="col">종류</th><th scope="col">상태</th><th scope="col">링크</th></tr>${artList}
-      </table></div>
-      <button id="a-save" class="ghost">아티팩트 저장</button>
-      <span id="a-msg" class="msg"></span>
+      <div data-panel="basic">
+        <div class="row">
+          <label>이름 <input id="d-name" value="${esc(s.display_name || "")}" placeholder="표시 이름" style="width:130px"></label>
+          <label>단계 <select id="d-stage">${stageOpts}</select></label>
+          <label>상태 <select id="d-status">${statusOpts}</select></label>
+          <button id="d-save">저장</button>
+          <span id="d-msg" class="msg"></span>
+        </div>
+        <p class="muted small">${esc(s.note || "")}</p>
 
-      <div id="i-skillblock"></div>
-
-      <h2>매칭 · GAP (${(matches || []).length})</h2>
-      <div class="scroll-x"><table class="tbl-cards">
-        <tr><th scope="col">등급</th><th scope="col">기업</th><th scope="col">공고명</th><th scope="col"><span class="sr-only">작업</span></th></tr>
-        ${(matches || []).slice(0, 6).map((m) => `
-          <tr data-mpid="${m.posting_id}">
-            <td class="tc-title"><span class="grade ${GRADE_CLASS[m.grade] || ""}">${m.grade} ${Math.round(m.total)}</span>
-                <span class="muted small">${esc(m.grade_label)}</span></td>
-            <td data-label="기업">${esc(m.company)}</td><td class="tc-wide" data-label="공고명">${esc(m.title)}</td>
-            <td class="tc-act"><button class="im-gap ghost" type="button">GAP</button></td>
-          </tr>`).join("") || `<tr><td colspan="4" class="muted">ACTIVE 공고 없음</td></tr>`}
-      </table></div>
-      <div id="i-gapbox"></div>
-
-      <div id="i-pfreviewbox"></div>
-
-      <div id="i-coachbox"></div>
-
-      <h2>지원 현황 (${apps.length})</h2>
-      <div class="scroll-x"><table class="tbl-cards">
-        <tr><th scope="col">회사</th><th scope="col">직무명</th><th scope="col">분류</th><th scope="col">상태</th><th scope="col">지원일</th><th scope="col"><span class="sr-only">작업</span></th></tr>
-        ${apps.map((a) => `
-          <tr data-app="${a.id}">
-            <td class="tc-title">${esc(a.company)}</td>
-            <td data-label="직무명">${esc(a.position || "") || "—"}</td>
-            <td data-label="분류"><select class="ap-cat">${catOpts(a.job_category)}</select></td>
-            <td data-label="상태"><select class="ap-status">${appStatusOpts(a.status)}</select></td>
-            <td data-label="지원일"><input class="ap-date" type="date" value="${esc(a.applied_at || "")}"></td>
-            <td class="tc-act"><button class="ap-del ghost" type="button">삭제</button></td>
-          </tr>`).join("") || `<tr><td colspan="6" class="muted">지원 내역 없음</td></tr>`}
-      </table></div>
-      <button id="ap-save" class="ghost">지원 현황 저장</button>
-      <span id="ap-msg" class="msg"></span>
-      <div class="row" style="margin-top:10px">
-        <input id="na-company" placeholder="회사명" style="width:auto">
-        <input id="na-pos" placeholder="직무명" style="width:auto">
-        <select id="na-cat" style="width:auto">${catOpts("")}</select>
-        <select id="na-status" style="width:auto">${appStatusOpts("INTERESTED")}</select>
-        <input id="na-date" type="date" style="width:auto">
-        <button id="na-add" type="button">지원 추가</button>
+        <h2>진행 요약</h2>
+        <div id="i-progress"></div>
       </div>
 
-      <h2>취업 확정</h2>
-      <div class="row">
-        <input id="em-company" placeholder="취업처" value="${esc(emp?.company || "")}" style="width:auto">
-        <input id="em-pos" placeholder="직무명" value="${esc(emp?.position || "")}" style="width:auto">
-        <select id="em-cat" style="width:auto">${catOpts(emp?.job_category)}</select>
-        <select id="em-type" style="width:auto">
-          ${EMPLOYMENT_TYPES.map((t) => `<option ${t === emp?.employment_type ? "selected" : ""}>${t}</option>`).join("")}
-        </select>
-        <label class="small">입사일 <input id="em-date" type="date" value="${esc(emp?.hire_date || "")}" style="width:auto"></label>
-        <button id="em-save">${emp ? "수정" : "확정"}</button>
-        <span id="em-msg" class="msg"></span>
-      </div>
-      <p class="muted small">등록만으로는 확정되지 않습니다. 관리자가 증빙을 확인해 검증하면 "취업 확정 · 졸업"으로 바뀝니다.</p>
-      <div id="i-ops"></div>
+      <div data-panel="employ" hidden>
+        <h2>취업 확정</h2>
+        <div class="row">
+          <input id="em-company" placeholder="취업처" value="${esc(emp?.company || "")}" style="width:auto">
+          <input id="em-pos" placeholder="직무명" value="${esc(emp?.position || "")}" style="width:auto">
+          <select id="em-cat" style="width:auto">${catOpts(emp?.job_category)}</select>
+          <select id="em-type" style="width:auto">
+            ${EMPLOYMENT_TYPES.map((t) => `<option ${t === emp?.employment_type ? "selected" : ""}>${t}</option>`).join("")}
+          </select>
+          <label class="small">입사일 <input id="em-date" type="date" value="${esc(emp?.hire_date || "")}" style="width:auto"></label>
+          <button id="em-save">${emp ? "수정" : "확정"}</button>
+          <span id="em-msg" class="msg"></span>
+        </div>
+        <p class="muted small">등록만으로는 확정되지 않습니다. 관리자가 증빙을 확인해 검증하면 "취업 확정 · 졸업"으로 바뀝니다.</p>
+        <div id="i-ops"></div>
 
-      <h2>피드백 추가</h2>
-      <div class="row">
-        <select id="f-author"><option>강사</option><option>윤교수</option><option>학과장</option></select>
-        <select id="f-stage"><option value="">단계 무관</option>${STAGES.map((v) => `<option>${v}</option>`).join("")}</select>
-      </div>
-      <textarea id="f-body" rows="3" placeholder="피드백 내용"></textarea>
-      <button id="f-add">추가</button> <span id="f-msg" class="msg"></span>
-      <ul class="fb">${fbList}</ul>
+        <h2>지원 현황 (${apps.length})</h2>
+        <div class="scroll-x"><table class="tbl-cards">
+          <tr><th scope="col">회사</th><th scope="col">직무명</th><th scope="col">분류</th><th scope="col">상태</th><th scope="col">지원일</th><th scope="col"><span class="sr-only">작업</span></th></tr>
+          ${apps.map((a) => `
+            <tr data-app="${a.id}">
+              <td class="tc-title">${esc(a.company)}</td>
+              <td data-label="직무명">${esc(a.position || "") || "—"}</td>
+              <td data-label="분류"><select class="ap-cat">${catOpts(a.job_category)}</select></td>
+              <td data-label="상태"><select class="ap-status">${appStatusOpts(a.status)}</select></td>
+              <td data-label="지원일"><input class="ap-date" type="date" value="${esc(a.applied_at || "")}"></td>
+              <td class="tc-act"><button class="ap-del ghost" type="button">삭제</button></td>
+            </tr>`).join("") || `<tr><td colspan="6" class="muted">지원 내역 없음</td></tr>`}
+        </table></div>
+        <button id="ap-save" class="ghost">지원 현황 저장</button>
+        <span id="ap-msg" class="msg"></span>
+        <div class="row" style="margin-top:10px">
+          <input id="na-company" placeholder="회사명" style="width:auto">
+          <input id="na-pos" placeholder="직무명" style="width:auto">
+          <select id="na-cat" style="width:auto">${catOpts("")}</select>
+          <select id="na-status" style="width:auto">${appStatusOpts("INTERESTED")}</select>
+          <input id="na-date" type="date" style="width:auto">
+          <button id="na-add" type="button">지원 추가</button>
+        </div>
 
-      <h2>진행 이력</h2><ul class="log">${logList}</ul>
+        <h2>매칭 · GAP (${(matches || []).length})</h2>
+        <div class="scroll-x"><table class="tbl-cards">
+          <tr><th scope="col">등급</th><th scope="col">기업</th><th scope="col">공고명</th><th scope="col"><span class="sr-only">작업</span></th></tr>
+          ${(matches || []).slice(0, 6).map((m) => `
+            <tr data-mpid="${m.posting_id}">
+              <td class="tc-title"><span class="grade ${GRADE_CLASS[m.grade] || ""}">${m.grade} ${Math.round(m.total)}</span>
+                  <span class="muted small">${esc(m.grade_label)}</span></td>
+              <td data-label="기업">${esc(m.company)}</td><td class="tc-wide" data-label="공고명">${esc(m.title)}</td>
+              <td class="tc-act"><button class="im-gap ghost" type="button">GAP</button></td>
+            </tr>`).join("") || `<tr><td colspan="4" class="muted">ACTIVE 공고 없음</td></tr>`}
+        </table></div>
+        <div id="i-gapbox"></div>
+      </div>
+
+      <div data-panel="career" hidden>
+        <h2>진로지도 <span class="muted small">(직무·추천 취업처·자료 — 진단점수는 학과 전용)</span></h2>
+        <div id="i-career"></div>
+
+        <h2>희망 직무</h2>
+        <div class="row">
+          <label class="small">1 <select id="pf1" style="width:auto">${prefOpts(prefByRank[1])}</select></label>
+          <label class="small">2 <select id="pf2" style="width:auto">${prefOpts(prefByRank[2])}</select></label>
+          <label class="small">3 <select id="pf3" style="width:auto">${prefOpts(prefByRank[3])}</select></label>
+          <button id="pf-save" class="ghost">저장</button>
+          <span id="pf-msg" class="msg"></span>
+        </div>
+
+        <h2>아티팩트</h2>
+        <div class="scroll-x"><table class="tbl-cards">
+          <tr><th scope="col">종류</th><th scope="col">상태</th><th scope="col">링크</th></tr>${artList}
+        </table></div>
+        <button id="a-save" class="ghost">아티팩트 저장</button>
+        <span id="a-msg" class="msg"></span>
+
+        <div id="i-skillblock"></div>
+        <div id="i-pfreviewbox"></div>
+        <div id="i-coachbox"></div>
+      </div>
+
+      <div data-panel="notes" hidden>
+        <h2>특이사항 <span class="muted small">(강사·관리자만 입력 — 수료 후 진도지도는 분류·다음 확인일과 함께 기록)</span></h2>
+        <div id="i-notes"></div>
+
+        <h2>피드백 추가</h2>
+        <div class="row">
+          <select id="f-author"><option>강사</option><option>윤교수</option><option>학과장</option></select>
+          <select id="f-stage"><option value="">단계 무관</option>${STAGES.map((v) => `<option>${v}</option>`).join("")}</select>
+        </div>
+        <textarea id="f-body" rows="3" placeholder="피드백 내용"></textarea>
+        <button id="f-add">추가</button> <span id="f-msg" class="msg"></span>
+        <ul class="fb">${fbList}</ul>
+
+        <h2>진행 이력</h2><ul class="log">${logList}</ul>
+      </div>
     </div>`;
+
+  host.querySelectorAll("[data-subtab]").forEach((b) => {
+    b.onclick = () => {
+      host.querySelectorAll("[data-subtab]").forEach((x) => {
+        const on = x === b;
+        x.classList.toggle("on", on);
+        x.setAttribute("aria-current", on ? "page" : "false");
+      });
+      host.querySelectorAll("[data-panel]").forEach((p) => { p.hidden = p.dataset.panel !== b.dataset.subtab; });
+    };
+  });
 
   // 목록에서 학생을 눌러 열었을 때만, 내용이 그려진 뒤 상세 위치로 화면을 옮긴다 (저장·삭제 후 다시 그릴 때는 이동하지 않음)
   if (opts.scroll) host.scrollIntoView?.({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
