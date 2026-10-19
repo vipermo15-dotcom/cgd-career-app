@@ -482,6 +482,14 @@ async function paintStudents(pane, cohort, focusCode) {
     const hit = (arr || []).find((a) => a.type === t);
     return artMark[hit?.status || "미확인"];
   }).join(" ");
+  // 포폴 바로가기: 어도비포폴 우선, 없으면 HTML랜딩
+  const portfolioUrl = (arr) =>
+    (arr || []).find((a) => a.type === "어도비포폴" && a.external_url)?.external_url ||
+    (arr || []).find((a) => a.type === "HTML랜딩" && a.external_url)?.external_url || "";
+  const pfLink = (arr) => {
+    const url = portfolioUrl(arr);
+    return url ? ` <a href="${esc(url)}" target="_blank" rel="noopener" class="badge pf-link">포폴 ↗</a>` : "";
+  };
 
   // 번호순 고정 — 상태·위험도 기준 학생 정렬(순위화)은 하지 않음 (STEP 13 금지사항)
   const sorted = [...rows].sort((a, b) => a.code.localeCompare(b.code));
@@ -491,7 +499,7 @@ async function paintStudents(pane, cohort, focusCode) {
     const hot = r.status === "delayed" || r.status === "data_mismatch";
     return `
     <tr data-id="${r.id}" class="${hot ? "warn" : ""}">
-      <td class="tc-title"><b>${esc(r.display_name || r.code)}</b>${r.display_name ? ` <span class="muted small">${esc(r.code)}</span>` : ""}</td>
+      <td class="tc-title"><b>${esc(r.display_name || r.code)}</b>${r.display_name ? ` <span class="muted small">${esc(r.code)}</span>` : ""}${pfLink(r.artifacts)}</td>
       <td data-label="트랙">${esc(r.track || "") || "—"}</td>
       <td data-label="단계">${esc(r.stage)}</td>
       <td data-label="상태">${esc(STATUS[r.status] || r.status)}</td>
@@ -515,7 +523,7 @@ async function paintStudents(pane, cohort, focusCode) {
       <tr><th scope="col">이름</th><th scope="col">단계</th><th scope="col">상태</th><th scope="col">다음 액션</th></tr>
       ${list.map((r) => {
         const na = nextAction(r);
-        return `<tr data-id="${r.id}"><td class="tc-title"><b>${esc(r.display_name || r.code)}</b> <span class="muted small">${esc(r.code)}</span></td>
+        return `<tr data-id="${r.id}"><td class="tc-title"><b>${esc(r.display_name || r.code)}</b> <span class="muted small">${esc(r.code)}</span>${pfLink(r.artifacts)}</td>
           <td data-label="단계">${esc(r.stage)}</td><td data-label="상태">${esc(STATUS[r.status] || r.status)}</td>
           <td class="small tc-wide" data-label="다음 액션">${esc(na.label)}</td></tr>`;
       }).join("")}
@@ -538,6 +546,8 @@ async function paintStudents(pane, cohort, focusCode) {
   pane.querySelectorAll("tr[data-id]").forEach((row) => {
     row.onclick = () => openDetail(pane.querySelector("#detail"), row.dataset.id, () => paintStudents(pane, cohort), { scroll: true });
   });
+  // 포폴 링크 클릭은 상세 열기로 번지지 않게 막는다
+  pane.querySelectorAll(".pf-link").forEach((a) => { a.onclick = (e) => e.stopPropagation(); });
 
   if (focusCode) {
     const row = sorted.find((r) => r.code === focusCode);

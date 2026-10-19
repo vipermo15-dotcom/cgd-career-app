@@ -28,7 +28,7 @@ export async function getDashboard(cohortId) {
 export async function listStudents(cohortId) {
   const { data, error } = await supabase
     .from("students")
-    .select("id, code, display_name, track, stage, status, outcome_status, note, updated_at, artifacts(type, status)")
+    .select("id, code, display_name, track, stage, status, outcome_status, note, updated_at, artifacts(type, status, external_url)")
     .eq("cohort_id", cohortId)
     .order("code");
   if (error) throw error;
