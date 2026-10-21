@@ -601,8 +601,9 @@ async function centerNoteForm(host, cohort) {
   const { supabase } = await import("../supabase.js");
   let studs = [];
   try {
+    const cohortId = cohort || (await listCohorts())[0]?.id;
     const { data, error } = await supabase.from("students").select("id, code, display_name")
-      .eq("cohort_id", cohort).eq("report_included", true).order("code");
+      .eq("cohort_id", cohortId).eq("report_included", true).order("code");
     if (error) throw error; studs = data || [];
   } catch (e) { host.innerHTML = `<p class="msg err">${esc(e.message)}</p>`; return; }
   const studentOpts = studs.map((s) =>
