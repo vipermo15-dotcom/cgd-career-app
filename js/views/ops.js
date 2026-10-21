@@ -9,6 +9,7 @@ import {
   listInterviews, saveInterview, deleteInterview, uploadInterviewDoc, deleteInterviewDoc, signedUrl,
   verifyEmployment, setEmploymentCare, setOutcomeStatus, setCompletionStatus, getEmployment,
   getControlTower, getCenterNotes, getEmployerDirectory, listMentorNotes, addMentorNote, deleteMentorNote, NOTE_TYPES,
+  listCohorts,
   getTopMatches, listPortfolioReviews, setStudentGithubUrl, setEmployment,
   listCompanies, registerCompany, registerEmployment, getPlacementSplit, addCenterNote, CENTER_EMPLOYMENT_TYPES,
   OUTCOME_LABEL, INTERVIEW_RESULT, DOC_KIND, RETENTION, FOLLOWUP_STATUS, STAGES, GRADE_CLASS,
@@ -631,8 +632,10 @@ async function employmentQuickForm(host, cohort, done, { useRpc = false } = {}) 
   const { supabase } = await import("../supabase.js");
   let studs = [];
   try {
+    // 관리자 업체현황은 기수 무관(cohort=null)으로 열리므로, 그 경우 최신 기수를 직접 찾는다
+    const cohortId = cohort || (await listCohorts())[0]?.id;
     const { data, error } = await supabase.from("students").select("id, code, display_name")
-      .eq("cohort_id", cohort).eq("report_included", true).order("code");
+      .eq("cohort_id", cohortId).eq("report_included", true).order("code");
     if (error) throw error; studs = data || [];
   } catch (e) { host.innerHTML = `<p class="msg err">${esc(e.message)}</p>`; return; }
   const studentOpts = studs.map((s) =>
