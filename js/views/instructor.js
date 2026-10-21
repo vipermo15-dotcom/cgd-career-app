@@ -16,6 +16,7 @@ import { paintCareerByJob, paintPostCompletion, renderCareerPanel } from "./care
 import { renderSkillBlock } from "../skillblock.js";
 import { renderCoach } from "../coach.js";
 import { renderPortfolioReview } from "../pfreview.js";
+import { renderResumeReview } from "../resumereview.js";
 
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) =>
   ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -677,6 +678,8 @@ async function openDetail(host, id, refresh, opts = {}) {
             </tr>`).join("") || `<tr><td colspan="4" class="muted">ACTIVE 공고 없음</td></tr>`}
         </table></div>
         <div id="i-gapbox"></div>
+
+        <div id="i-resumereview"></div>
       </div>
 
       <div data-panel="career" hidden>
@@ -743,6 +746,7 @@ async function openDetail(host, id, refresh, opts = {}) {
   renderStudentOps(host.querySelector("#i-ops"), {
     studentId: id, code: s.code, student: s, isAdmin: IS_ADMIN, onChange: refresh });
   renderCoach(host.querySelector("#i-coachbox"), id);
+  renderResumeReview(host.querySelector("#i-resumereview"), id);
 
   host.querySelectorAll(".im-gap").forEach((b) => {
     b.onclick = async () => {

@@ -275,6 +275,15 @@ export async function analyzePortfolio(body) {
   return data;
 }
 
+/* ---------- AI-09: 이력서 평가(ATS 키워드매칭) ---------- */
+export const listResumeReviews = (studentId) => rpc("cgd_resume_reviews", { p_student: studentId });
+export async function analyzeResume(body) {
+  const { data, error } = await supabase.functions.invoke("resume-analyze", { body });
+  if (error) throw new Error(/non-2xx|not found|Failed to send/i.test(error.message) ? AI_OFF_MSG : error.message);
+  if (data?.error) throw new Error(data.error);
+  return data;
+}
+
 /* ---------- Phase D: 채용공고 ---------- */
 export async function listJobPostings() {
   const { data, error } = await supabase.from("job_postings")
