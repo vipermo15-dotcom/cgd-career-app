@@ -73,7 +73,7 @@ export async function renderInstructor(el, { session, profile }) {
     <div id="cohortbar" class="cohortbar"></div>
     <nav class="tabs with-icons" aria-label="강사 메뉴">
       ${tabBtn("summary", "현황", true)}${tabBtn("control", "DASHBOARD")}${tabBtn("weekly", "주차현황")}${tabBtn("employer", "업체현황")}
-      ${tabBtn("kpi", "실적")}${tabBtn("students", "학생")}${tabBtn("career", "진로지도")}${tabBtn("postcomp", "수료후")}${tabBtn("followup", "사후관리")}${tabBtn("report", "성과보고")}${tabBtn("postings", "공고")}${tabBtn("roster", "명단")}
+      ${tabBtn("kpi", "실적")}${tabBtn("students", "학생")}${tabBtn("portfolio", "포트폴리오")}${tabBtn("career", "진로지도")}${tabBtn("postcomp", "수료후")}${tabBtn("followup", "사후관리")}${tabBtn("report", "성과보고")}${tabBtn("postings", "공고")}${tabBtn("roster", "명단")}
     </nav>
     <section id="pane">${skeleton(4)}</section>`;
   el.querySelector("#so").onclick = signOut;
@@ -94,6 +94,7 @@ export async function renderInstructor(el, { session, profile }) {
     if (name === "report") paintReport(pane, cohort);
     if (name === "kpi") paintKPI(pane, cohort);
     if (name === "students") paintStudents(pane, cohort, opts?.focusCode);
+    if (name === "portfolio") paintPortfolio(pane, cohort);
     if (name === "career") paintCareerByJob(pane, cohort, { onOpenStudent: (code) => show("students", { focusCode: code }) });
     if (name === "postcomp") paintPostCompletion(pane, cohort, { onOpenStudent: (code) => show("students", { focusCode: code }) });
     if (name === "postings") paintPostings(pane);
@@ -558,6 +559,51 @@ async function paintStudents(pane, cohort, focusCode) {
       tr?.scrollIntoView({ behavior: "smooth", block: "center" });
     }
   }
+}
+
+/* ---------- 교육생 포트폴리오 (어도비포폴 링크 한눈에) ---------- */
+async function paintPortfolio(pane, cohort) {
+  pane.innerHTML = skeleton(4);
+  let rows;
+  try { rows = await listStudents(cohort); }
+  catch (e) { return renderError(pane, e, () => paintPortfolio(pane, cohort)); }
+
+  const sorted = [...rows].sort((a, b) => a.code.localeCompare(b.code));
+  const adobeUrl = (arr) => (arr || []).find((a) => a.type === "어도비포폴")?.external_url || "";
+  const htmlUrl = (arr) => (arr || []).find((a) => a.type === "HTML랜딩" && a.external_url)?.external_url || "";
+
+  const withLink = sorted.filter((r) => adobeUrl(r.artifacts));
+  const withoutLink = sorted.filter((r) => !adobeUrl(r.artifacts));
+
+  const row = (r) => {
+    const url = adobeUrl(r.artifacts);
+    const fallback = htmlUrl(r.artifacts);
+    return `<tr>
+      <td class="tc-title"><b>${esc(r.display_name || r.code)}</b> <span class="muted small">${esc(r.code)}</span></td>
+      <td>${url
+        ? `<a href="${esc(url)}" target="_blank" rel="noopener" class="badge pf-link">어도비포폴 ↗</a>`
+        : fallback
+          ? `<span class="muted small">미업로드(HTML랜딩만 <a href="${esc(fallback)}" target="_blank" rel="noopener">↗</a>)</span>`
+          : `<span class="muted small">미업로드</span>`}</td>
+    </tr>`;
+  };
+
+  pane.innerHTML = `
+    <div class="card"><h2>교육생 포트폴리오 (어도비포폴)</h2>
+      <p class="muted small">업로드 ${withLink.length}명 · 미업로드 ${withoutLink.length}명 (전체 ${sorted.length}명). 링크는 artifacts 테이블의 어도비포폴 항목(external_url)을 그대로 보여줍니다.</p>
+    </div>
+    <div class="card"><h2>미업로드 (${withoutLink.length}명)</h2>
+      <div class="scroll-x"><table class="tbl-cards">
+        <tr><th scope="col">이름</th><th scope="col">상태</th></tr>
+        ${withoutLink.map(row).join("") || "<tr><td colspan=2 class='muted'>없음</td></tr>"}
+      </table></div>
+    </div>
+    <div class="card"><h2>업로드 완료 (${withLink.length}명)</h2>
+      <div class="scroll-x"><table class="tbl-cards">
+        <tr><th scope="col">이름</th><th scope="col">링크</th></tr>
+        ${withLink.map(row).join("") || "<tr><td colspan=2 class='muted'>없음</td></tr>"}
+      </table></div>
+    </div>`;
 }
 
 const catOpts = (sel) => `<option value="">직무-</option>` +
