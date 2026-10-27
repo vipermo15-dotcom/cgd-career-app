@@ -11,7 +11,7 @@ import {
   STAGES, STATUS, ARTIFACT_TYPES,
   APPLICATION_STATUS, JOB_CATEGORIES, EMPLOYMENT_TYPES, GRADE_CLASS,
 } from "../data.js";
-import { paintWeekly, paintFollowups, paintReport, renderStudentOps, paintControlTower, paintEmployerDirectory, renderMentorNotes, renderProgressSummary } from "./ops.js";
+import { paintWeekly, paintFollowups, paintReport, renderStudentOps, paintControlTower, paintEmployerDirectory, renderMentorNotes, renderProgressSummary, paintPortfolio } from "./ops.js";
 import { paintCareerByJob, paintPostCompletion, renderCareerPanel } from "./career.js";
 import { renderSkillBlock } from "../skillblock.js";
 import { renderCoach } from "../coach.js";
@@ -559,51 +559,6 @@ async function paintStudents(pane, cohort, focusCode) {
       tr?.scrollIntoView({ behavior: "smooth", block: "center" });
     }
   }
-}
-
-/* ---------- 교육생 포트폴리오 (어도비포폴 링크 한눈에) ---------- */
-async function paintPortfolio(pane, cohort) {
-  pane.innerHTML = skeleton(4);
-  let rows;
-  try { rows = await listStudents(cohort); }
-  catch (e) { return renderError(pane, e, () => paintPortfolio(pane, cohort)); }
-
-  const sorted = [...rows].sort((a, b) => a.code.localeCompare(b.code));
-  const adobeUrl = (arr) => (arr || []).find((a) => a.type === "어도비포폴")?.external_url || "";
-  const htmlUrl = (arr) => (arr || []).find((a) => a.type === "HTML랜딩" && a.external_url)?.external_url || "";
-
-  const withLink = sorted.filter((r) => adobeUrl(r.artifacts));
-  const withoutLink = sorted.filter((r) => !adobeUrl(r.artifacts));
-
-  const row = (r) => {
-    const url = adobeUrl(r.artifacts);
-    const fallback = htmlUrl(r.artifacts);
-    return `<tr>
-      <td class="tc-title"><b>${esc(r.display_name || r.code)}</b> <span class="muted small">${esc(r.code)}</span></td>
-      <td>${url
-        ? `<a href="${esc(url)}" target="_blank" rel="noopener" class="badge pf-link">어도비포폴 ↗</a>`
-        : fallback
-          ? `<span class="muted small">미업로드(HTML랜딩만 <a href="${esc(fallback)}" target="_blank" rel="noopener">↗</a>)</span>`
-          : `<span class="muted small">미업로드</span>`}</td>
-    </tr>`;
-  };
-
-  pane.innerHTML = `
-    <div class="card"><h2>교육생 포트폴리오 (어도비포폴)</h2>
-      <p class="muted small">업로드 ${withLink.length}명 · 미업로드 ${withoutLink.length}명 (전체 ${sorted.length}명). 링크는 artifacts 테이블의 어도비포폴 항목(external_url)을 그대로 보여줍니다.</p>
-    </div>
-    <div class="card"><h2>미업로드 (${withoutLink.length}명)</h2>
-      <div class="scroll-x"><table class="tbl-cards">
-        <tr><th scope="col">이름</th><th scope="col">상태</th></tr>
-        ${withoutLink.map(row).join("") || "<tr><td colspan=2 class='muted'>없음</td></tr>"}
-      </table></div>
-    </div>
-    <div class="card"><h2>업로드 완료 (${withLink.length}명)</h2>
-      <div class="scroll-x"><table class="tbl-cards">
-        <tr><th scope="col">이름</th><th scope="col">링크</th></tr>
-        ${withLink.map(row).join("") || "<tr><td colspan=2 class='muted'>없음</td></tr>"}
-      </table></div>
-    </div>`;
 }
 
 const catOpts = (sel) => `<option value="">직무-</option>` +
